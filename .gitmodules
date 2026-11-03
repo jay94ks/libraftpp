@@ -1,0 +1,51 @@
+[submodule "deps/asyncpp"]
+	path = deps/asyncpp
+	url = https://github.com/asyncpp/asyncpp.git
+[submodule "deps/asio"]
+	path = deps/asio
+	url = https://github.com/chriskohlhoff/asio.git
+[submodule "deps/mvfst"]
+	path = deps/mvfst
+	url = https://github.com/facebook/mvfst.git
+[submodule "deps/msquic"]
+	path = deps/msquic
+	url = https://github.com/microsoft/msquic.git
+[submodule "deps/lz4"]
+	path = deps/lz4
+	url = https://github.com/lz4/lz4.git
+[submodule "deps/zlib"]
+	path = deps/zlib
+	url = https://github.com/madler/zlib.git
+[submodule "deps/zstd"]
+	path = deps/zstd
+	url = https://github.com/facebook/zstd.git
+[submodule "deps/folly"]
+	path = deps/folly
+	url = https://github.com/facebook/folly.git
+[submodule "deps/fizz"]
+	path = deps/fizz
+	url = https://github.com/facebookincubator/fizz.git
+[submodule "deps/fmt"]
+	path = deps/fmt
+	url = https://github.com/fmtlib/fmt.git
+[submodule "deps/fast_float"]
+	path = deps/fast_float
+	url = https://github.com/fastfloat/fast_float.git
+[submodule "deps/gflags"]
+	path = deps/gflags
+	url = https://github.com/gflags/gflags.git
+[submodule "deps/boost"]
+	path = deps/boost
+	url = https://github.com/boostorg/boost.git
+[submodule "deps/openssl"]
+	path = deps/openssl
+	url = https://github.com/openssl/openssl.git
+[submodule "deps/glog"]
+	path = deps/glog
+	url = https://github.com/google/glog.git
+[submodule "deps/libevent"]
+	path = deps/libevent
+	url = https://github.com/libevent/libevent.git
+[submodule "deps/libsodium"]
+	path = deps/libsodium
+	url = https://github.com/jedisct1/libsodium.git

@@ -1,0 +1,34 @@
+#ifndef RAFTPP_CONFIG_HPP
+#define RAFTPP_CONFIG_HPP
+
+#cmakedefine01 RAFTPP_WITH_UV
+#cmakedefine01 RAFTPP_WITH_LZ4
+#cmakedefine01 RAFTPP_WITH_FIXTURE
+#cmakedefine01 RAFTPP_WITH_BACKTRACE
+
+#cmakedefine01 RAFTPP_MODULE_ASYNCPP
+#cmakedefine01 RAFTPP_MODULE_ASIO
+#cmakedefine01 RAFTPP_MODULE_MVFST
+#cmakedefine01 RAFTPP_MODULE_MSQUIC
+#cmakedefine01 RAFTPP_MODULE_LZ4
+#cmakedefine01 RAFTPP_MODULE_ZSTD
+#cmakedefine01 RAFTPP_MODULE_ZLIB
+
+namespace raftpp::features {
+    inline constexpr bool uv = RAFTPP_WITH_UV;
+    inline constexpr bool lz4 = RAFTPP_WITH_LZ4;
+    inline constexpr bool fixture = RAFTPP_WITH_FIXTURE;
+    inline constexpr bool backtrace = RAFTPP_WITH_BACKTRACE;
+}
+
+namespace raftpp::features::modules {
+    inline constexpr bool asyncpp = RAFTPP_MODULE_ASYNCPP;
+    inline constexpr bool asio = RAFTPP_MODULE_ASIO;
+    inline constexpr bool mvfst = RAFTPP_MODULE_MVFST;
+    inline constexpr bool msquic = RAFTPP_MODULE_MSQUIC;
+    inline constexpr bool lz4 = RAFTPP_MODULE_LZ4;
+    inline constexpr bool zstd = RAFTPP_MODULE_ZSTD;
+    inline constexpr bool zlib = RAFTPP_MODULE_ZLIB;
+}
+
+#endif // RAFTPP_CONFIG_HPP

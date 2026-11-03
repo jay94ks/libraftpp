@@ -1,0 +1,100 @@
+{
+  "asyncpp": {
+    "url": "https://github.com/asyncpp/asyncpp.git",
+    "revision": "c1d3831bbccfe870880c725bee597cf92e508ea7"
+  },
+  "asio": {
+    "url": "https://github.com/chriskohlhoff/asio.git",
+    "revision": "bdf337ddb1a667c274372a602de5857ad3cb3ed0"
+  },
+  "mvfst": {
+    "url": "https://github.com/facebook/mvfst.git",
+    "revision": "1c7dfc8ce6f3db4f18267aeaecd47afcb6c4b961"
+  },
+  "msquic": {
+    "url": "https://github.com/microsoft/msquic.git",
+    "revision": "21a4d9c4affa8da13b7f3758ed02c6180e567629"
+  },
+  "lz4": {
+    "url": "https://github.com/lz4/lz4.git",
+    "revision": "4fab7ab18e89095bda933ac2de6d261c5a009085"
+  },
+  "zlib": {
+    "url": "https://github.com/madler/zlib.git",
+    "revision": "51b7f2abdade71cd9bb0e7a373ef2610ec6f9daf"
+  },
+  "zstd": {
+    "url": "https://github.com/facebook/zstd.git",
+    "revision": "f8745da6ff1ad1e7bab384bd1f9d742439278e99"
+  },
+  "folly": {
+    "url": "https://github.com/facebook/folly.git",
+    "revision": "357f3927ddc79c8faa12f88e8535a364ecdecbd5",
+    "required_by": [
+      "mvfst"
+    ]
+  },
+  "fizz": {
+    "url": "https://github.com/facebookincubator/fizz.git",
+    "revision": "d5e667b426f4c8a30443f3ae93a1354a562fbb38",
+    "required_by": [
+      "mvfst"
+    ]
+  },
+  "fmt": {
+    "url": "https://github.com/fmtlib/fmt.git",
+    "revision": "407c905e45ad75fc29bf0f9bb7c5c2fd3475976f",
+    "required_by": [
+      "mvfst"
+    ]
+  },
+  "fast_float": {
+    "url": "https://github.com/fastfloat/fast_float.git",
+    "revision": "77cc847c842c49e7e3477c1e95da2b6540166d66",
+    "required_by": [
+      "mvfst"
+    ]
+  },
+  "gflags": {
+    "url": "https://github.com/gflags/gflags.git",
+    "revision": "33bb3461e10864b5406353d3a1fb7ff34c2314b8",
+    "required_by": [
+      "mvfst"
+    ]
+  },
+  "boost": {
+    "url": "https://github.com/boostorg/boost.git",
+    "revision": "564e2ac16907019696cdaba8a93e3588ec596062",
+    "required_by": [
+      "mvfst"
+    ]
+  },
+  "openssl": {
+    "url": "https://github.com/openssl/openssl.git",
+    "revision": "31912bc2fa6587c1e54251f5066034e3c523bc4c",
+    "required_by": [
+      "mvfst"
+    ]
+  },
+  "glog": {
+    "url": "https://github.com/google/glog.git",
+    "revision": "7b134a5c82c0c0b5698bb6bf7a835b230c5638e4",
+    "required_by": [
+      "mvfst"
+    ]
+  },
+  "libevent": {
+    "url": "https://github.com/libevent/libevent.git",
+    "revision": "d82464a277d0f42703702c4dfd9af6af38595a83",
+    "required_by": [
+      "mvfst"
+    ]
+  },
+  "libsodium": {
+    "url": "https://github.com/jedisct1/libsodium.git",
+    "revision": "9511c982fb1d046470a8b42aa36556cdb7da15de",
+    "required_by": [
+      "mvfst"
+    ]
+  }
+}

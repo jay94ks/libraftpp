@@ -1,0 +1,8 @@
+add_executable(raftpp_example_server server.cpp)
+target_link_libraries(raftpp_example_server PRIVATE raftpp::raftpp)
+set_target_properties(raftpp_example_server PROPERTIES CXX_EXTENSIONS OFF OUTPUT_NAME raftpp-example-server)
+
+add_executable(raftpp_example_cluster cluster.cpp)
+target_link_libraries(raftpp_example_cluster PRIVATE raftpp::raftpp)
+set_target_properties(raftpp_example_cluster PROPERTIES CXX_EXTENSIONS OFF OUTPUT_NAME raftpp-example-cluster)
+add_dependencies(raftpp_example_cluster raftpp_example_server)

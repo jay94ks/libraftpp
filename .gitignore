@@ -1,0 +1,13 @@
+# Generated active-module public headers and synchronization lock.
+/include/
+/.raftpp-headers.lock
+
+# Local build products and machine-specific state.
+/build/
+/build-*/
+/cmake-build-*/
+/.cache/
+/.agents/
+/.codex/
+/.aws/
+/compile_commands.json

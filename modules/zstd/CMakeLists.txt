@@ -1,0 +1,15 @@
+cmake_minimum_required(VERSION 3.20)
+include("${CMAKE_CURRENT_LIST_DIR}/../../cmake/dependency-module.cmake")
+raftpp_add_dependency_module(zstd)
+
+find_package(zstd CONFIG REQUIRED)
+if(TARGET zstd::libzstd_shared)
+    target_link_libraries(raftpp_zstd PUBLIC zstd::libzstd_shared)
+elseif(TARGET zstd::libzstd_static)
+    target_link_libraries(raftpp_zstd PUBLIC zstd::libzstd_static)
+else()
+    message(FATAL_ERROR "zstd package must provide zstd::libzstd_shared or zstd::libzstd_static")
+endif()
+raftpp_dependency_package("find_dependency(zstd CONFIG)")
+
+raftpp_finish_dependency_module(zstd)

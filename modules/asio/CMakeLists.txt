@@ -1,0 +1,27 @@
+cmake_minimum_required(VERSION 3.20)
+include("${CMAKE_CURRENT_LIST_DIR}/../../cmake/dependency-module.cmake")
+raftpp_add_dependency_module(asio)
+
+find_package(Threads REQUIRED)
+if(EXISTS "${RAFTPP_DEPS_DIR}/asio/asio/include/asio.hpp")
+    set(_asio_include "${RAFTPP_DEPS_DIR}/asio/asio/include")
+elseif(EXISTS "${RAFTPP_DEPS_DIR}/asio/include/asio.hpp")
+    set(_asio_include "${RAFTPP_DEPS_DIR}/asio/include")
+else()
+    find_path(_asio_include asio.hpp REQUIRED)
+endif()
+target_include_directories(raftpp_asio SYSTEM PUBLIC
+    "$<BUILD_INTERFACE:${_asio_include}>")
+target_compile_definitions(raftpp_asio PUBLIC ASIO_STANDALONE)
+target_link_libraries(raftpp_asio PUBLIC Threads::Threads)
+if(WIN32)
+    target_link_libraries(raftpp_asio PUBLIC ws2_32 mswsock)
+endif()
+if(RAFTPP_INSTALL)
+    install(DIRECTORY "${_asio_include}/asio" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+        FILES_MATCHING PATTERN "*.hpp" PATTERN "*.ipp")
+    install(FILES "${_asio_include}/asio.hpp" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+endif()
+raftpp_dependency_package("find_dependency(Threads)")
+
+raftpp_finish_dependency_module(asio)
