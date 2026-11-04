@@ -1,6 +1,6 @@
 # Optional Adapter Modules
 
-[한국어](../ko/dependencies.md)
+[한국어](../ko/dependencies.md) · [Module APIs](modules/index.md)
 
 `raftpp::core` is mandatory. Optional SDK modules also depend on core. `deps/` provides upstream sources and an independent SDK preparation build; `modules/<name>/` provides concrete adapters, public headers and CMake rules for raftpp modules. SDK preparation itself is not a raftpp module.
 
@@ -8,13 +8,13 @@
 
 | Option (default OFF) | Target | Public header | Integration scope |
 | --- | --- | --- | --- |
-| `RAFTPP_MODULE_ASYNCPP` | `raftpp::asyncpp` | `<raftpp/asyncpp/asyncpp.hpp>` | `asyncpp_executor : executor` |
-| `RAFTPP_MODULE_ASIO` | `raftpp::asio` | `<raftpp/asio/asio.hpp>` | `asio_stream : byte_stream`, `asio_executor : executor` |
-| `RAFTPP_MODULE_MVFST` | `raftpp::mvfst` | `<raftpp/mvfst/mvfst.hpp>` | `mvfst_stream : byte_stream` |
-| `RAFTPP_MODULE_MSQUIC` | `raftpp::msquic` | `<raftpp/msquic/msquic.hpp>` | `msquic_stream : byte_stream`, `open_msquic_api()` |
-| `RAFTPP_MODULE_LZ4` | `raftpp::lz4` | `<raftpp/lz4/lz4.hpp>` | `lz4_codec : compression_codec`, liblz4 ≥ 1.7.1 |
-| `RAFTPP_MODULE_ZSTD` | `raftpp::zstd` | `<raftpp/zstd/zstd.hpp>` | `zstd_codec : compression_codec` |
-| `RAFTPP_MODULE_ZLIB` | `raftpp::zlib` | `<raftpp/zlib/zlib.hpp>` | `zlib_codec : compression_codec` |
+| [`RAFTPP_MODULE_ASYNCPP`](modules/asyncpp.md) | `raftpp::asyncpp` | `<raftpp/asyncpp/asyncpp.hpp>` | `asyncpp_executor : executor` |
+| [`RAFTPP_MODULE_ASIO`](modules/asio.md) | `raftpp::asio` | `<raftpp/asio/asio.hpp>` | `asio_stream : byte_stream`, `asio_executor : executor` |
+| [`RAFTPP_MODULE_MVFST`](modules/mvfst.md) | `raftpp::mvfst` | `<raftpp/mvfst/mvfst.hpp>` | `mvfst_stream : byte_stream` |
+| [`RAFTPP_MODULE_MSQUIC`](modules/msquic.md) | `raftpp::msquic` | `<raftpp/msquic/msquic.hpp>` | `msquic_stream : byte_stream`, `open_msquic_api()` |
+| [`RAFTPP_MODULE_LZ4`](modules/lz4.md) | `raftpp::lz4` | `<raftpp/lz4/lz4.hpp>` | `lz4_codec : compression_codec`, liblz4 ≥ 1.7.1 |
+| [`RAFTPP_MODULE_ZSTD`](modules/zstd.md) | `raftpp::zstd` | `<raftpp/zstd/zstd.hpp>` | `zstd_codec : compression_codec` |
+| [`RAFTPP_MODULE_ZLIB`](modules/zlib.md) | `raftpp::zlib` | `<raftpp/zlib/zlib.hpp>` | `zlib_codec : compression_codec` |
 
 These modules contain concrete implementations of core abstractions, linked with their native SDKs. [Streams, framing, executors and codecs](streams.md) describe their API contracts. `uv_stream` also implements `byte_stream`; `framed_transport` implements the core `transport` over any compatible established peer streams. Enabling a module does not select a node backend automatically. [UV](uv_io.md) continues to provide disk persistence and timers; these optional stream adapters do not provide separate durable `io` implementations. QUIC connection establishment, certificates, authentication and reconnect policy remain with the application connector. All public asynchronous APIs use callbacks.
 

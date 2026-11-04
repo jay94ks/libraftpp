@@ -1,6 +1,6 @@
 # Event Core and Common Queries
 
-[한국어](../ko/core.md) · [Callback Nodes](node.md) · [Buffers, Entries, and Snapshots](storage.md) · [CMake Builds/Installation](cmake.md)
+[한국어](../ko/core.md) · [Callback Nodes](node.md) · [Buffers, Entries, and Snapshots](storage.md) · [CMake Builds/Installation](cmake.md) · [Module APIs](modules/index.md)
 
 Include `<raftpp/core.hpp>`, `<raftpp/random.hpp>`, or `<raftpp/version.hpp>` for these APIs, also included by `<raftpp.hpp>`. Link only `raftpp::raftpp`. All are available with any UV/LZ4/fixture setting.
 

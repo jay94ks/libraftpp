@@ -8,6 +8,8 @@ This document records progress and verification for the C++20 port of the entire
 
 ## Overall Status
 
+Module API documentation unit (2026-11-04): added ten paired pages for core/UV, seven optional adapters, and a module index. Documented public APIs, ownership, callbacks, errors, options, examples, and navigation to existing topic pages. Checked thirty-one total document pairs/638 relative links and matching new code/signature blocks. Documentation-only changes skip product builds/tests and reuse existing results.
+
 Added concrete adapters for core abstractions: common `byte_stream`, `executor`, `compression_codec`, `framed_transport`, and the seven modules' stream/executor/codec implementations. Eight new contract checks passed individually in Release and ASan/UBSan, with eighteen related UV/compression checks and static/shared installed consumers validated. The new unit below preserves initial failures/interruption and selective resumption. These modules do not provide QUIC connection/TLS establishment or a complete separate durable `io`; those boundaries remain with the application connector and existing UV.
 
 User scope correction (2026-11-03): SDK include/link targets alone do not implement a module. Work has started on common byte-stream, executor and compression interfaces plus native adapters implementing core abstractions like UV. Earlier SDK smoke checks remain dependency preparation/link evidence only, not adapter behavior validation.
@@ -137,6 +139,22 @@ Allocation-failure injection exposed termination inside libstdc++ directory_iter
 Foundational components, the in-memory log, and snapshots are connected to the internal event-driven consensus core. In-memory cluster elections, replication, commits, membership, leadership transfer, partitions, and recovery are compared against C. Public callback node APIs and I/O and FSM interfaces are implemented and tested with a mock backend. RPC and disk-batch serialization and checksums are independently implemented with format comparisons and verification complete. Synchronous metadata, snapshot, and segment-file operations, stored-state recovery, a direct-I/O/KAIO writer, and a log-writing coordinator are also implemented. A test-only I/O adapter checks a single node's close/restart using actual disk storage. The snapshot/file coordinator and public `uv_io` now connect actual storage and timers to an abstract message transport. Concrete `tcp_transport` is connected to `uv_io` and nodes, allowing actual disk-and-TCP nodes. Basic tracing and buffer/object/core/native-container memory resources are connected. An independent public C++ virtual-time fixture provides memory I/O and cluster controls. Native examples, submit/disk benchmarks and kernel perf/trace are implemented. Current whole-API/compatibility decisions follow the final audit table below; actual kernel-measurement/device-execution limits remain separate.
 
 The original C implementation is preserved under `raft/` as the behavioral reference. `raftpp::raft` provides the original C library; `raftpp::raftpp` provides independently implemented C++ components. A successful C-target build or an enabled feature flag does not establish that the corresponding C++ layer is complete.
+
+### Module API Documentation (2026-11-04)
+
+Added matching `index.md` and core/uv/asyncpp/asio/mvfst/msquic/lz4/zstd/zlib pages under `docs/ko/modules/` and `docs/en/modules/`. Each covers activation options, installed components/targets/headers, public methods/arguments/results, constructor exceptions/error codes/diagnostics, ownership transfer/execution domains/completion-close callbacks, and examples. Core/UV pages link existing topic API documents and describe new boundaries and UV compression helpers. Added no work status or execution history to API documents.
+
+Reference scope covers seven adapters' public headers/implementations/CMake; core stream/transport/executor/codec/framed_transport/buffer/error/common/random/version and call dependencies; UV public headers/compression/build; related API documents, asyncpp dispatcher contracts, and existing contract-check examples. Actual edits affect only paired API documents and root progress records. Distinguished UV's multiple close observers from other adapters' single observer, and Asio's socket consumption on failure from successful UV/QUIC native adoption. Described UV's first-LZ4-frame decoder versus strict single-frame codecs accurately for trailing bytes, allocators, and errors.
+
+| Check | Run/skipped/unverified | Result or previous record | Change impact or reason for skipping |
+| --- | --- | --- | --- |
+| Module language pairs/relative links | Run | Thirty-one total document pairs, 638 relative links without errors. Nine modules plus an index give ten new pages per language. `/tmp/raftpp-module-api-docs-validation.json` | New pages and navigation from existing CMake/dependency/topic documents |
+| New document public APIs/paired code blocks | Run | No missing public class/function names from SDK headers; thirty-two new paired code/signature blocks match. Same JSON report | Compared native ownership/callback/cleanup paths and options against actual source. This is not a code-block build/execution result |
+| Document whitespace | Run | `git diff --check` passed | Document/progress whitespace |
+| Builds/Release adapters/ASan-UBSan/UV regressions/installed consumers | Skipped — reused existing results | Each check/limit in preceding `Concrete Adapters for Core Abstractions (2026-11-03–04)` | Product/test/generated-header/build/dependency/option inputs are unchanged. Preserved initial failures/interruption too |
+| New documentation example compilation/execution | Skipped | Checked header/signature correspondence and paired code equality only | Documentation-only edits skip builds/execution. Existing runtime passes are not reported as executions of new examples |
+
+Ran `python3 /tmp/raftpp-check-module-docs.py` and `git diff --check`. Entry pages are `docs/en/modules/index.md` and its Korean counterpart. Implementation and QUIC establishment/TLS/LSan verification limits remain as recorded in the preceding unit.
 
 ### Concrete Adapters for Core Abstractions (2026-11-03–04)
 

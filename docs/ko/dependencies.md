@@ -1,6 +1,6 @@
 # 선택 어댑터 모듈
 
-[English](../en/dependencies.md)
+[English](../en/dependencies.md) · [모듈별 API](modules/index.md)
 
 `raftpp::core`는 필수 모듈이다. 선택 SDK 모듈도 core에 의존한다. `deps/`는 상류 소스와 독립 SDK 준비 빌드를, `modules/<name>/`은 실제 어댑터·공개 헤더·CMake 빌드 규칙을 제공한다. SDK 준비 빌드 자체는 raftpp 모듈이 아니다.
 
@@ -8,13 +8,13 @@
 
 | 옵션 (기본 OFF) | 타깃 | 공개 헤더 | 연결 범위 |
 | --- | --- | --- | --- |
-| `RAFTPP_MODULE_ASYNCPP` | `raftpp::asyncpp` | `<raftpp/asyncpp/asyncpp.hpp>` | `asyncpp_executor : executor` |
-| `RAFTPP_MODULE_ASIO` | `raftpp::asio` | `<raftpp/asio/asio.hpp>` | `asio_stream : byte_stream`, `asio_executor : executor` |
-| `RAFTPP_MODULE_MVFST` | `raftpp::mvfst` | `<raftpp/mvfst/mvfst.hpp>` | `mvfst_stream : byte_stream` |
-| `RAFTPP_MODULE_MSQUIC` | `raftpp::msquic` | `<raftpp/msquic/msquic.hpp>` | `msquic_stream : byte_stream`, `open_msquic_api()` |
-| `RAFTPP_MODULE_LZ4` | `raftpp::lz4` | `<raftpp/lz4/lz4.hpp>` | `lz4_codec : compression_codec`, liblz4 ≥ 1.7.1 |
-| `RAFTPP_MODULE_ZSTD` | `raftpp::zstd` | `<raftpp/zstd/zstd.hpp>` | `zstd_codec : compression_codec` |
-| `RAFTPP_MODULE_ZLIB` | `raftpp::zlib` | `<raftpp/zlib/zlib.hpp>` | `zlib_codec : compression_codec` |
+| [`RAFTPP_MODULE_ASYNCPP`](modules/asyncpp.md) | `raftpp::asyncpp` | `<raftpp/asyncpp/asyncpp.hpp>` | `asyncpp_executor : executor` |
+| [`RAFTPP_MODULE_ASIO`](modules/asio.md) | `raftpp::asio` | `<raftpp/asio/asio.hpp>` | `asio_stream : byte_stream`, `asio_executor : executor` |
+| [`RAFTPP_MODULE_MVFST`](modules/mvfst.md) | `raftpp::mvfst` | `<raftpp/mvfst/mvfst.hpp>` | `mvfst_stream : byte_stream` |
+| [`RAFTPP_MODULE_MSQUIC`](modules/msquic.md) | `raftpp::msquic` | `<raftpp/msquic/msquic.hpp>` | `msquic_stream : byte_stream`, `open_msquic_api()` |
+| [`RAFTPP_MODULE_LZ4`](modules/lz4.md) | `raftpp::lz4` | `<raftpp/lz4/lz4.hpp>` | `lz4_codec : compression_codec`, liblz4 ≥ 1.7.1 |
+| [`RAFTPP_MODULE_ZSTD`](modules/zstd.md) | `raftpp::zstd` | `<raftpp/zstd/zstd.hpp>` | `zstd_codec : compression_codec` |
+| [`RAFTPP_MODULE_ZLIB`](modules/zlib.md) | `raftpp::zlib` | `<raftpp/zlib/zlib.hpp>` | `zlib_codec : compression_codec` |
 
 이 모듈들은 네이티브 SDK를 이용하는 core 추상 인터페이스의 실제 구현체를 포함한다. [스트림·framing·실행기·코덱](streams.md)에서 API 계약을 설명한다. `uv_stream`도 `byte_stream`을 구현하며, `framed_transport`는 호환되는 연결된 peer 스트림 위에서 core의 `transport`를 구현한다. 모듈 활성화만으로 노드의 백엔드가 자동 선택되지는 않는다. 디스크 영속화와 타이머는 계속 [UV](uv_io.md)가 제공하며 선택 스트림 어댑터가 별도의 영속 `io`를 제공하지는 않는다. QUIC 연결 수립·인증서·인증·재접속 정책은 애플리케이션 connector가 담당한다. 공개 비동기 API는 콜백을 사용한다.
 

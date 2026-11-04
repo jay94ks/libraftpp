@@ -1,6 +1,6 @@
 # Owned libuv Streams and Connection Transports
 
-[한국어](../ko/uv_stream.md) · [TCP Message Transport](tcp_transport.md) · [libuv I/O](uv_io.md) · [Encoding](encoding.md) · [Message Adapter](stream_transport.md)
+[한국어](../ko/uv_stream.md) · [TCP Message Transport](tcp_transport.md) · [libuv I/O](uv_io.md) · [Encoding](encoding.md) · [Message Adapter](stream_transport.md) · [Module APIs](modules/index.md)
 
 Include `<raftpp/uv/uv_stream.hpp>` and `<raftpp/uv/uv_stream_transport.hpp>`, also available through `<raftpp.hpp>`. These APIs require `RAFTPP_WITH_UV=ON`; fixture and LZ4 are independent. Calls and callbacks run serially on the owning libuv loop, which must remain alive through every close completion.
 

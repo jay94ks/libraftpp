@@ -1,6 +1,6 @@
 # Stream 플러그인의 메시지 전송
 
-[English](../en/stream_transport.md) · [소유 stream](uv_stream.md) · [libuv I/O](uv_io.md) · [인코딩](encoding.md)
+[English](../en/stream_transport.md) · [소유 stream](uv_stream.md) · [libuv I/O](uv_io.md) · [인코딩](encoding.md) · [모듈별 API](modules/index.md)
 
 `<raftpp/uv/stream_transport.hpp>`의 `stream_transport`는 호출자가 선택한 `shared<uv_stream_transport>` 위에서 `transport`를 구현한다. 완전한 Raft 메시지의 framing, 대기 쓰기 소유권과 raw connector 재연결을 담당한다. `RAFTPP_WITH_UV=ON`이 필요하며 LZ4·fixture와 독립적이다. `raftpp::raftpp`만 링크한다. 호출·콜백은 지정한 libuv 루프에서 순차 실행하며 종료 완료까지 루프를 유지한다.
 

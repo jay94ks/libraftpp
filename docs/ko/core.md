@@ -1,6 +1,6 @@
 # 이벤트 코어와 공통 조회
 
-[English](../en/core.md) · [콜백 노드](node.md) · [버퍼, 엔트리와 스냅샷](storage.md) · [CMake 빌드·설치](cmake.md)
+[English](../en/core.md) · [콜백 노드](node.md) · [버퍼, 엔트리와 스냅샷](storage.md) · [CMake 빌드·설치](cmake.md) · [모듈별 API](modules/index.md)
 
 각 API는 `<raftpp/core.hpp>`, `<raftpp/random.hpp>`, `<raftpp/version.hpp>`를 포함하며 `<raftpp.hpp>`에서도 제공한다. `raftpp::raftpp`에만 연결한다. UV/LZ4/fixture 설정과 무관하게 사용할 수 있다.
 

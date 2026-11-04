@@ -1,6 +1,6 @@
 # 스트림·Framing·실행기·코덱
 
-[English](../en/streams.md)
+[English](../en/streams.md) · [모듈별 API](modules/index.md)
 
 필수 타깃 `raftpp::core`는 `<raftpp/stream.hpp>`, `<raftpp/framed_transport.hpp>`, `<raftpp/executor.hpp>`, `<raftpp/compression.hpp>`를 제공한다. 선택 [어댑터 모듈](dependencies.md)이 이 추상 인터페이스를 구현한다. 타입은 `raftpp` 네임스페이스에 있다.
 
@@ -10,7 +10,7 @@
 
 `write(view<const shared_buffer>, completion = {})`는 버퍼를 순서대로 쓴다. 단일 버퍼 오버로드도 같은 계약이다. 즉시 제출 오류이면 완료 콜백을 호출하지 않는다. 접수한 쓰기는 데이터를 유지하고 정확히 한 번 완료한다. 성공은 로컬 SDK의 접수/완료이며 원격 애플리케이션 전달이나 Raft commit을 의미하지 않는다. 다른 쓰기가 진행 중이면 백엔드가 `busy`를 반환할 수 있다. 입력 view 자체의 저장소는 제출 후 파괴해도 된다.
 
-`close(close_callback = {})`는 읽기를 중지하고 접수한 작업을 완료/취소한 뒤 종료 완료를 알린다. 소멸자는 종료를 시작하며 동기 대기하지 않는다. 종료 완료까지 네이티브 실행 영역을 계속 구동한다. 대기 중인 종료 observer는 하나이며 추가 observer는 `busy`다. 사용자 콜백은 예외를 던지면 안 된다. `error_details()`는 값을 소유하는 진단을 반환한다.
+`close(close_callback = {})`는 읽기를 중지하고 접수한 작업을 완료/취소한 뒤 종료 완료를 알린다. 소멸자는 종료를 시작하며 동기 대기하지 않는다. 종료 완료까지 네이티브 실행 영역을 계속 구동한다. Asio/mvfst/MsQuic 스트림의 대기 중인 종료 observer는 하나이며 추가 nonempty observer는 `busy`다. UV 스트림은 여러 observer를 지원하며 추가 등록은 할당할 수 있다. 사용자 콜백은 예외를 던지면 안 된다. `error_details()`는 값을 소유하는 진단을 반환한다.
 
 | 구현체 | 생성과 소유권 | 실행 영역 |
 | --- | --- | --- |
@@ -19,7 +19,7 @@
 | `mvfst_stream` | `shared<quic::QuicSocketLite> connection, quic::StreamId stream`. 연결된 양방향 스트림의 콜백을 독점 소유 | 연결의 event-base 스레드 |
 | `msquic_stream` | 공유 API 테이블·연결된 `HQUIC` 스트림·`shared<void> connection_owner`. 생성 성공 후 네이티브 스트림/콜백 소유권 인수 | 연결의 직렬화된 MsQuic 콜백 실행 영역 |
 
-이벤트 루프는 네이티브 종료보다 오래 살아 있어야 한다. `open_msquic_api()`는 `MsQuicClose`로 해제하는 공유 테이블을 반환하고 SDK 실패 시 `system_error`를 던진다. MsQuic의 연결 owner는 connection과 registration을 유지해야 한다. 인수한 스트림에 경쟁하는 네이티브 콜백을 설치하거나 외부에서 닫지 않는다. MsQuic 수신 버퍼는 SDK에 반환하기 전에 복사하고 송신 버퍼는 `SEND_COMPLETE`까지 유지한다. mvfst 쓰기는 SDK가 소유하는 `IOBuf`에 복사하며 `writeChain`의 복사본 접수 직후 성공 콜백을 인라인으로 실행할 수 있다. mvfst 종료는 reader를 분리하고 해당 스트림만 reset하며 공유 연결의 다른 스트림은 유지한다. Asio는 소켓을 값으로 인수하므로 이후 생성 실패 시에도 인수한 소켓을 정리한다. 생성자는 할당 및 예외가 가능하며 검증 실패 시 네이티브 스트림을 인수하지 않는다.
+이벤트 루프는 네이티브 종료보다 오래 살아 있어야 한다. `open_msquic_api()`는 `MsQuicClose`로 해제하는 공유 테이블을 반환하고 SDK 실패 시 `system_error`를 던진다. MsQuic의 연결 owner는 connection과 registration을 유지해야 한다. 인수한 스트림에 경쟁하는 네이티브 콜백을 설치하거나 외부에서 닫지 않는다. MsQuic 수신 버퍼는 SDK에 반환하기 전에 복사하고 송신 버퍼는 `SEND_COMPLETE`까지 유지한다. mvfst 쓰기는 SDK가 소유하는 `IOBuf`에 복사하며 `writeChain`의 복사본 접수 직후 성공 콜백을 인라인으로 실행할 수 있다. mvfst 종료는 reader를 분리하고 해당 스트림만 reset하며 공유 연결의 다른 스트림은 유지한다. Asio는 소켓을 값으로 인수하므로 이후 생성 실패 시에도 인수한 소켓을 정리한다. 생성자는 할당 예외를 던질 수 있다. UV/QUIC의 native 스트림 인계는 생성 성공 후 성립하며 Asio의 값 인자 소켓은 실패 시에도 소비된다.
 
 어댑터는 네이티브 실행 영역을 유지한다. 이벤트 루프 사이의 자동 콜백 전달이나 Raft 노드 동기화를 제공하지 않는다. 하나의 transport로 조립하는 모든 스트림은 노드 I/O 콜백과 같은 직렬화 실행 영역을 사용해야 한다. 서로 다른 네이티브 worker 연결은 Raft core 호출 전에 애플리케이션 bridge가 필요하다. QUIC의 TLS/listener/연결 설정과 peer 신원 검증은 connector가 담당한다.
 

@@ -1,6 +1,6 @@
 # Message Transport over Stream Plugins
 
-[한국어](../ko/stream_transport.md) · [Owned Streams](uv_stream.md) · [libuv I/O](uv_io.md) · [Encoding](encoding.md)
+[한국어](../ko/stream_transport.md) · [Owned Streams](uv_stream.md) · [libuv I/O](uv_io.md) · [Encoding](encoding.md) · [Module APIs](modules/index.md)
 
 `stream_transport` in `<raftpp/uv/stream_transport.hpp>` implements `transport` over a caller-selected `shared<uv_stream_transport>`. It frames complete Raft messages, owns pending writes, and reconnects using the raw connector. `RAFTPP_WITH_UV=ON` is required; LZ4 and fixture are independent. Link only `raftpp::raftpp`. Calls and callbacks run serially on the supplied libuv loop; keep the loop alive through close completion.
 

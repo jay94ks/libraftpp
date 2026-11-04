@@ -1,10 +1,10 @@
 # CMake Builds and Installed Packages
 
-[한국어](../ko/cmake.md) · [Event Core](core.md) · [libuv I/O](uv_io.md) · [Tracing](tracing.md)
+[한국어](../ko/cmake.md) · [Event Core](core.md) · [libuv I/O](uv_io.md) · [Tracing](tracing.md) · [Module APIs](modules/index.md)
 
-`raftpp::raftpp` is the interface target aggregating enabled module libraries and their C++20 usage requirements. Use CMake 3.20 or newer. Source builds, tests, examples, tools, and installed-package consumers require only a C++ compiler. Module libraries are `raftpp::core` (always enabled) and `raftpp::uv` (with `RAFTPP_WITH_UV=ON`). Link the aggregate target to use all enabled modules, or a module target for its API; UV transitively links core.
+`raftpp::raftpp` is the interface target aggregating enabled module libraries and their C++20 usage requirements. Use CMake 3.20 or newer. Source builds, tests, examples, tools, and installed-package consumers require only a C++ compiler. Module libraries are `raftpp::core` (always enabled), `raftpp::uv` (with `RAFTPP_WITH_UV=ON`), and selected `RAFTPP_MODULE_<NAME>` adapters. Link the aggregate target to use all enabled modules, or a module target for its API; UV transitively links core.
 
-Use `#include <raftpp.hpp>` for all enabled modules, `<raftpp/raft.hpp>` for core, and `<raftpp/uv/uv.hpp>` for UV. Concrete headers are under `<raftpp/uv/...>`, such as `<raftpp/uv/uv_io.hpp>`. Names remain in namespace `raftpp`. UV headers are absent when UV is disabled; `fixture.hpp` is absent when fixture support is disabled. Compression helpers belong to UV and return `invalid` when LZ4 support is disabled.
+Use `#include <raftpp.hpp>` for all enabled modules, `<raftpp/raft.hpp>` for core, and `<raftpp/uv/uv.hpp>` for UV. Concrete headers are under `<raftpp/uv/...>`, such as `<raftpp/uv/uv_io.hpp>`. Names remain in namespace `raftpp`. UV headers are absent when UV is disabled; `fixture.hpp` is absent when fixture support is disabled. UV compression helpers return `invalid` when LZ4 support is disabled. See [module APIs](modules/index.md) for separate `lz4`/`zstd`/`zlib` codec modules and core abstract `compression_codec`.
 
 ## Using the Source
 

@@ -1,6 +1,6 @@
 # libuv I/O and Transport
 
-[한국어](../ko/uv_io.md) · [Node API](node.md) · [TCP Transport](tcp_transport.md) · [Owned Streams](uv_stream.md) · [Message Adapter](stream_transport.md)
+[한국어](../ko/uv_io.md) · [Node API](node.md) · [TCP Transport](tcp_transport.md) · [Owned Streams](uv_stream.md) · [Message Adapter](stream_transport.md) · [Module APIs](modules/index.md)
 
 `uv_io` in `<raftpp/uv/uv_io.hpp>` implements `io`, connecting Linux file storage and libuv timers to a `transport`. It is declared and built only with `RAFTPP_WITH_UV=ON`. The abstract message transport in `<raftpp/transport.hpp>` is available independently of UV. Consumers link only `raftpp::raftpp`; with UV enabled, that target also propagates `<uv.h>` and libuv link requirements.
 

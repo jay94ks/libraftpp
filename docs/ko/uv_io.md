@@ -1,6 +1,6 @@
 # libuv I/O와 전송
 
-[English](../en/uv_io.md) · [노드 API](node.md) · [TCP 전송](tcp_transport.md) · [소유 stream](uv_stream.md) · [메시지 adapter](stream_transport.md)
+[English](../en/uv_io.md) · [노드 API](node.md) · [TCP 전송](tcp_transport.md) · [소유 stream](uv_stream.md) · [메시지 adapter](stream_transport.md) · [모듈별 API](modules/index.md)
 
 `<raftpp/uv/uv_io.hpp>`의 `uv_io`는 `io`를 구현하며, Linux 파일 저장과 libuv 타이머를 `transport`에 연결한다. `RAFTPP_WITH_UV=ON`에서만 선언·빌드한다. `<raftpp/transport.hpp>`의 추상 메시지 전송 인터페이스는 UV 옵션과 무관하게 사용할 수 있다. 소비자는 `raftpp::raftpp`만 연결하며, UV 활성 시 이 타깃이 `<uv.h>`와 libuv 링크 사용 조건도 전달한다.
 

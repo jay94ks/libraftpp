@@ -1,10 +1,10 @@
 # CMake 빌드와 설치 패키지
 
-[English](../en/cmake.md) · [이벤트 코어](core.md) · [libuv I/O](uv_io.md) · [추적](tracing.md)
+[English](../en/cmake.md) · [이벤트 코어](core.md) · [libuv I/O](uv_io.md) · [추적](tracing.md) · [모듈별 API](modules/index.md)
 
-`raftpp::raftpp`는 활성 모듈 라이브러리와 C++20 사용 조건을 연결하는 인터페이스 타깃이다. CMake 3.20 이상을 사용한다. 소스 빌드·테스트·예제·도구와 설치 패키지 소비자는 C++ 컴파일러만 사용한다. 모듈 라이브러리는 항상 활성인 `raftpp::core`와 `RAFTPP_WITH_UV=ON`의 `raftpp::uv`다. 전체 활성 모듈은 통합 타깃으로, 개별 API는 해당 모듈 타깃으로 연결한다. uv는 core를 전이적으로 연결한다.
+`raftpp::raftpp`는 활성 모듈 라이브러리와 C++20 사용 조건을 연결하는 인터페이스 타깃이다. CMake 3.20 이상을 사용한다. 소스 빌드·테스트·예제·도구와 설치 패키지 소비자는 C++ 컴파일러만 사용한다. 모듈 라이브러리는 항상 활성인 `raftpp::core`, `RAFTPP_WITH_UV=ON`의 `raftpp::uv`와 선택된 `RAFTPP_MODULE_<NAME>` 어댑터다. 전체 활성 모듈은 통합 타깃으로, 개별 API는 해당 모듈 타깃으로 연결한다. uv는 core를 전이적으로 연결한다.
 
-`#include <raftpp.hpp>`는 전체 활성 모듈, `<raftpp/raft.hpp>`는 core, `<raftpp/uv/uv.hpp>`는 uv의 진입점이다. 구체적인 헤더는 `<raftpp/uv/uv_io.hpp>`처럼 `<raftpp/uv/...>`에 있다. 타입 이름은 `raftpp` 네임스페이스를 유지한다. UV 비활성 시 UV 헤더가 없고 fixture 비활성 시 `fixture.hpp`가 없다. 압축 보조 함수는 uv에 속하며 LZ4 비활성 시 `invalid`를 반환한다.
+`#include <raftpp.hpp>`는 전체 활성 모듈, `<raftpp/raft.hpp>`는 core, `<raftpp/uv/uv.hpp>`는 uv의 진입점이다. 구체적인 헤더는 `<raftpp/uv/uv_io.hpp>`처럼 `<raftpp/uv/...>`에 있다. 타입 이름은 `raftpp` 네임스페이스를 유지한다. UV 비활성 시 UV 헤더가 없고 fixture 비활성 시 `fixture.hpp`가 없다. UV의 압축 보조 함수는 LZ4 비활성 시 `invalid`를 반환한다. 별도 `lz4`·`zstd`·`zlib` 코덱 모듈과 core의 추상 `compression_codec`은 [모듈별 API](modules/index.md)를 따른다.
 
 ## 소스에서 사용
 

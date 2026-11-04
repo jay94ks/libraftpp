@@ -1,6 +1,6 @@
 # Streams, Framing, Executors and Codecs
 
-[한국어](../ko/streams.md)
+[한국어](../ko/streams.md) · [Module APIs](modules/index.md)
 
 The mandatory `raftpp::core` target provides `<raftpp/stream.hpp>`, `<raftpp/framed_transport.hpp>`, `<raftpp/executor.hpp>` and `<raftpp/compression.hpp>`. Optional [adapter modules](dependencies.md) implement these abstractions. Types use namespace `raftpp`.
 
@@ -10,7 +10,7 @@ The mandatory `raftpp::core` target provides `<raftpp/stream.hpp>`, `<raftpp/fra
 
 `write(view<const shared_buffer>, completion = {})` writes buffers in order. The single-buffer overload has the same contract. An immediate submission error never invokes completion. Accepted writes retain data and complete exactly once; success indicates local SDK acceptance/completion, not delivery to the remote application or Raft commit. Backends may return `busy` while another write is active. Input view storage may be destroyed after submission.
 
-`close(close_callback = {})` stops reads, drains/cancels accepted operations and then invokes close completion. Destruction initiates close; it does not synchronously wait. Keep driving the native execution domain until close completion. Streams allow one pending close observer; another returns `busy`. User callbacks must not throw. `error_details()` returns owning diagnostic information.
+`close(close_callback = {})` stops reads, drains/cancels accepted operations and then invokes close completion. Destruction initiates close; it does not synchronously wait. Keep driving the native execution domain until close completion. Asio/mvfst/MsQuic streams allow one pending close observer; another nonempty observer returns `busy`. UV streams support multiple observers, with additional registration potentially allocating. User callbacks must not throw. `error_details()` returns owning diagnostic information.
 
 | Implementation | Construction and ownership | Execution domain |
 | --- | --- | --- |
@@ -19,7 +19,7 @@ The mandatory `raftpp::core` target provides `<raftpp/stream.hpp>`, `<raftpp/fra
 | `mvfst_stream` | `shared<quic::QuicSocketLite> connection, quic::StreamId stream`; exclusive callback ownership for an established bidirectional stream | The connection's event-base thread |
 | `msquic_stream` | Shared API table, established `HQUIC` stream and `shared<void> connection_owner`; takes native stream/callback ownership after successful construction | The connection's serialized MsQuic callback domain |
 
-The event loop must outlive native close. `open_msquic_api()` returns a shared table released using `MsQuicClose`; it throws `system_error` on SDK failure. The MsQuic connection owner must retain its connection and registration. Never access an adopted stream through competing native callbacks or close it externally. MsQuic receive buffers are copied before returning to the SDK and send buffers remain alive until `SEND_COMPLETE`. mvfst writes copy into an SDK-owned `IOBuf`; successful completion may run inline after `writeChain` accepts that copy. Closing mvfst detaches its reader and resets only that stream, retaining other streams on the shared connection. Asio consumes the socket by value, including cleanup if construction subsequently fails. Constructors may allocate and throw; validation failures do not adopt a native stream.
+The event loop must outlive native close. `open_msquic_api()` returns a shared table released using `MsQuicClose`; it throws `system_error` on SDK failure. The MsQuic connection owner must retain its connection and registration. Never access an adopted stream through competing native callbacks or close it externally. MsQuic receive buffers are copied before returning to the SDK and send buffers remain alive until `SEND_COMPLETE`. mvfst writes copy into an SDK-owned `IOBuf`; successful completion may run inline after `writeChain` accepts that copy. Closing mvfst detaches its reader and resets only that stream, retaining other streams on the shared connection. Asio consumes the socket by value, including cleanup if construction subsequently fails. Constructors may throw allocation exceptions. UV/QUIC native stream adoption requires successful construction; Asio consumes its by-value socket even on failure.
 
 Adapters preserve their native execution domains; they do not automatically marshal callbacks between event loops or synchronize a Raft node. Every stream assembled into one transport must use the same serialized domain as the node's I/O callbacks. Distinct native worker connections require an application bridge before invoking the Raft core. QUIC TLS/listener/connection setup and peer identity validation belong to that connector.
 
