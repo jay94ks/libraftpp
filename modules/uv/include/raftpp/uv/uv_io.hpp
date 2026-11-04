@@ -60,6 +60,8 @@ namespace raftpp {
         [[nodiscard]] error_code set_snapshot_compression(bool enabled) noexcept;
 
     private:
+        uv_io(uv_loop_s& loop, fs::path directory, uv_io_options options);
+        friend class uv_storage;
         shared<detail::uv_io_state> state_;
     };
 }

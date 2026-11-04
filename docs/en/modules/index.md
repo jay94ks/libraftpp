@@ -1,6 +1,6 @@
 # Module APIs
 
-[한국어](../../ko/modules/index.md)
+[한국어](../../ko/modules/index.md) · [I/O composition](../composition.md)
 
 All types use namespace `raftpp`. Core is mandatory; optional modules depend on it. Linking a module target propagates C++20, public headers, and required link conditions.
 
@@ -9,7 +9,7 @@ All types use namespace `raftpp`. Core is mandatory; optional modules depend on 
 | [core](core.md) | `raftpp::core` | Always enabled | `<raftpp/raft.hpp>` | Consensus, nodes, values, abstract I/O/streams/executors/compression, RPC framing |
 | [uv](uv.md) | `raftpp::uv` | `RAFTPP_WITH_UV` | `<raftpp/uv/uv.hpp>` | Linux durable I/O/timers, TCP/pipe/TTY streams and transports |
 | [asyncpp](asyncpp.md) | `raftpp::asyncpp` | `RAFTPP_MODULE_ASYNCPP` | `<raftpp/asyncpp/asyncpp.hpp>` | Dispatcher-backed callback executor |
-| [asio](asio.md) | `raftpp::asio` | `RAFTPP_MODULE_ASIO` | `<raftpp/asio/asio.hpp>` | Standalone Asio executor and TCP stream |
+| [asio](asio.md) | `raftpp::asio` | `RAFTPP_MODULE_ASIO` | `<raftpp/asio/asio.hpp>` | Standalone Asio executor/timer and TCP stream |
 | [mvfst](mvfst.md) | `raftpp::mvfst` | `RAFTPP_MODULE_MVFST` | `<raftpp/mvfst/mvfst.hpp>` | Established mvfst bidirectional QUIC stream |
 | [msquic](msquic.md) | `raftpp::msquic` | `RAFTPP_MODULE_MSQUIC` | `<raftpp/msquic/msquic.hpp>` | MsQuic API ownership and established QUIC stream |
 | [lz4](lz4.md) | `raftpp::lz4` | `RAFTPP_MODULE_LZ4` | `<raftpp/lz4/lz4.hpp>` | LZ4 frame codec |
@@ -36,3 +36,5 @@ Generated `<raftpp/config.hpp>` macros `RAFTPP_MODULE_<NAME>` and `raftpp::featu
 Streams and I/O callbacks belonging to one node/transport must share a serialized execution domain. Adapters provide neither automatic event-loop transfer nor node synchronization. QUIC connection/TLS/peer authentication/reconnect belong to the application connector. UV provides disk/timer `io`. Executors submit callbacks and do not add coroutine/future-based Raft APIs.
 
 Write success means the SDK's local acceptance/completion, not Raft commit or remote application acknowledgement. Immediate submission failure invokes no completion. Keep the execution domain running after close until accepted work and native cleanup finish. See each module and the [common stream contract](../streams.md) for differences.
+
+Use `make_io(io_components)` to assemble storage/timer/network and an optional snapshot codec into a node backend. UV provides `uv_storage`/`uv_timer`; Asio provides `asio_timer`. See [I/O composition](../composition.md) for concrete combinations.

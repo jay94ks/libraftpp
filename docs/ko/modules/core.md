@@ -1,6 +1,6 @@
 # core 모듈 API
 
-[English](../../en/modules/core.md) · [모듈 목록](index.md)
+[English](../../en/modules/core.md) · [모듈 목록](index.md) · [I/O 조립](../composition.md)
 
 `raftpp::core`는 항상 활성화되는 필수 라이브러리다. `<raftpp/raft.hpp>`는 core 공개 API를 모으며 타입은 `<raftpp/common.hpp>`의 표준 별칭과 소유권 의미를 사용한다. 외부 네트워크 SDK 없이 사용할 수 있다.
 
@@ -85,3 +85,5 @@ uint32_t random_within_range(uint32_t& state, uint32_t minimum,
 ```
 
 `<raftpp/random.hpp>`에서 제공한다. 호출자가 소유한 `state`를 갱신하며 양 끝을 포함한 범위의 값을 반환한다. `minimum <= maximum`이 사전조건이다. 같은 시드는 같은 순서를 재현하며 단일 값 범위는 그 값을 반환하고 state를 진행시키지 않는다. 암호화용 난수 API가 아니며 state의 동시 접근은 호출자가 직렬화한다.
+
+`storage.hpp`, `timer.hpp`, `composed_io.hpp`는 사용자가 선택한 저장소·타이머·transport·스냅샷 코덱으로 `shared<io>`를 만드는 `make_io(io_components)`를 제공한다. 생성 검증·옵션·초기화/종료·형식 계약은 [I/O 조립](../composition.md)을 따른다.

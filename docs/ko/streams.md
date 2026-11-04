@@ -1,6 +1,6 @@
 # 스트림·Framing·실행기·코덱
 
-[English](../en/streams.md) · [모듈별 API](modules/index.md)
+[English](../en/streams.md) · [모듈별 API](modules/index.md) · [I/O 조립](composition.md)
 
 필수 타깃 `raftpp::core`는 `<raftpp/stream.hpp>`, `<raftpp/framed_transport.hpp>`, `<raftpp/executor.hpp>`, `<raftpp/compression.hpp>`를 제공한다. 선택 [어댑터 모듈](dependencies.md)이 이 추상 인터페이스를 구현한다. 타입은 `raftpp` 네임스페이스에 있다.
 

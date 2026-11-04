@@ -1,6 +1,6 @@
 # CMake 빌드와 설치 패키지
 
-[English](../en/cmake.md) · [이벤트 코어](core.md) · [libuv I/O](uv_io.md) · [추적](tracing.md) · [모듈별 API](modules/index.md)
+[English](../en/cmake.md) · [이벤트 코어](core.md) · [libuv I/O](uv_io.md) · [추적](tracing.md) · [모듈별 API](modules/index.md) · [I/O 조립](composition.md)
 
 `raftpp::raftpp`는 활성 모듈 라이브러리와 C++20 사용 조건을 연결하는 인터페이스 타깃이다. CMake 3.20 이상을 사용한다. 소스 빌드·테스트·예제·도구와 설치 패키지 소비자는 C++ 컴파일러만 사용한다. 모듈 라이브러리는 항상 활성인 `raftpp::core`, `RAFTPP_WITH_UV=ON`의 `raftpp::uv`와 선택된 `RAFTPP_MODULE_<NAME>` 어댑터다. 전체 활성 모듈은 통합 타깃으로, 개별 API는 해당 모듈 타깃으로 연결한다. uv는 core를 전이적으로 연결한다.
 

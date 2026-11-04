@@ -1,6 +1,6 @@
 # asio 모듈 API
 
-[English](../../en/modules/asio.md) · [모듈 목록](index.md)
+[English](../../en/modules/asio.md) · [모듈 목록](index.md) · [I/O 조립](../composition.md)
 
 `RAFTPP_MODULE_ASIO=ON`이면 `raftpp::asio`와 `<raftpp/asio/asio.hpp>`를 제공한다. standalone Asio를 사용하며 core, Threads와 `ASIO_STANDALONE` 사용 조건이 타깃에서 전달된다. Boost.Asio 타입을 인자로 전달하지 않는다.
 
@@ -79,3 +79,19 @@ raftpp::shared<raftpp::framed_transport> make_asio_transport(
 ```
 
 호출자는 연결·peer 인증을 완료하고 소켓과 노드 I/O의 실행 영역을 일치시킨다. 반환한 transport의 init/start/close는 I/O 백엔드에 맡긴다. UV I/O와 다른 context를 직접 연결하는 자동 bridge는 없다. 별도 영속 I/O 백엔드나 TCP listener는 이 모듈의 API에 포함되지 않는다. [공통 스트림 계약](../streams.md)을 함께 따른다.
+
+## 조립용 `asio_timer`
+
+```cpp
+explicit asio_timer(asio::any_io_executor executor);
+error_code start(unsigned interval, completion tick) noexcept override;
+void close(close_callback callback = {}) noexcept override;
+uint64_t time() const noexcept override;
+error_info error_details() const noexcept override;
+```
+
+`asio_timer final : timer`는 `asio::steady_timer`로 양수 밀리초 간격의 tick을 제공한다. 성공 tick은 빈 `error_code`, native wait/rearm 실패는 오류를 전달하고 구독을 끝낸다. 크기 0·빈 콜백은 `invalid`, 반복 시작은 `busy`, 종료 중 start는 `shutdown`이다. 제출 할당 실패는 `out_of_memory`, 기타 실패는 `io_error`다. 초기 제출 실패 시 tick은 없다.
+
+객체는 복사/이동할 수 없다. native executor는 값으로 보관하지만 `io_context`의 수명을 연장하지 않는다. 메서드·파괴·콜백을 같은 스레드/strand에서 직렬화하고 context를 계속 구동한다. `time()`은 steady clock의 밀리초다. close는 wait 취소와 활성 tick 반환을 기다리고 완료한다. native 취소가 실패하면 해당 wait가 끝날 때까지 기다릴 수 있다. 대기 중 첫 nonempty close observer만 유지한다. 이미 닫힌 객체는 즉시 완료하며 소멸자는 대기하지 않고 종료를 시작한다. 콜백 예외는 전파하지 않고 종료/진단으로 처리한다.
+
+`io_components::timer`에 전달하면 노드의 주기와 시계로 사용한다. `asio_executor`를 조립기에 전달하는 것으로 타이머를 대신하지 않는다. [I/O 조립](../composition.md)의 저장소·network와 같은 실행 영역을 사용한다.

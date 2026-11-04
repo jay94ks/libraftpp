@@ -7,5 +7,7 @@
 #include <raftpp/uv/uv_stream.hpp>
 #include <raftpp/uv/uv_stream_transport.hpp>
 #include <raftpp/uv/stream_transport.hpp>
+#include <raftpp/uv/uv_storage.hpp>
+#include <raftpp/uv/uv_timer.hpp>
 
 #endif // RAFTPP_UV_UV_HPP

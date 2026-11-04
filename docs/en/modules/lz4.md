@@ -1,6 +1,6 @@
 # LZ4 Module API
 
-[한국어](../../ko/modules/lz4.md) · [Modules](index.md)
+[한국어](../../ko/modules/lz4.md) · [Modules](index.md) · [I/O composition](../composition.md)
 
 `lz4_codec final : compression_codec` synchronously compresses/decompresses a LZ4 frame. Select `RAFTPP_MODULE_LZ4=ON`, link `raftpp::lz4`, and include `<raftpp/lz4/lz4.hpp>`. Depends on core and PkgConfig package `liblz4 >= 1.7.1`. UV is not required. See [dependencies](../dependencies.md) for SDK preparation/discovery.
 
@@ -70,4 +70,4 @@ Retain input for the duration of the call. The example's decoded limit is 8 MiB;
 
 This option is independent of `RAFTPP_WITH_LZ4`, which enables the UV snapshot decoder and requires UV. `lz4_codec` works without UV; unlike UV free function `decompress`, it rejects following frames/trailing bytes and preserves the output allocator. See the [UV compression contract](uv.md).
 
-Selecting a codec does not automatically alter storage/network formats or snapshot compression. See [streams/executors/codecs](../streams.md) and [buffers](../storage.md) for common ownership and abstract interfaces.
+Enabling the module does not automatically change formats or snapshot compression. Explicitly assigning the codec to `io_components::snapshot_codec` stores/restores the snapshot envelope described in [I/O composition](../composition.md). See [streams/executors/codecs](../streams.md) and [buffers](../storage.md) for common ownership and abstract interfaces.

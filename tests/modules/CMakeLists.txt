@@ -17,3 +17,28 @@ foreach(module IN ITEMS asyncpp asio mvfst msquic lz4 zstd zlib)
         set_tests_properties(raftpp.module_${module} PROPERTIES TIMEOUT 30 LABELS "module;adapter")
     endif()
 endforeach()
+
+if(TARGET raftpp_asio)
+    add_executable(raftpp_composition_module_tests composition.cpp)
+    target_link_libraries(raftpp_composition_module_tests PRIVATE raftpp::core raftpp::asio)
+    set_target_properties(raftpp_composition_module_tests PROPERTIES CXX_EXTENSIONS OFF
+        EXCLUDE_FROM_DEFAULT_BUILD_DEBUG TRUE
+        EXCLUDE_FROM_DEFAULT_BUILD_RELWITHDEBINFO TRUE
+        EXCLUDE_FROM_DEFAULT_BUILD_MINSIZEREL TRUE)
+    set(composition_suites timer cluster)
+    if(TARGET raftpp::uv)
+        target_link_libraries(raftpp_composition_module_tests PRIVATE raftpp::uv)
+        list(APPEND composition_suites uv)
+        foreach(codec IN ITEMS lz4 zstd zlib)
+            if(TARGET raftpp::${codec})
+                target_link_libraries(raftpp_composition_module_tests PRIVATE raftpp::${codec})
+                list(APPEND composition_suites ${codec})
+            endif()
+        endforeach()
+    endif()
+    foreach(suite IN LISTS composition_suites)
+        add_test(NAME raftpp.composition_${suite} COMMAND raftpp_composition_module_tests ${suite}
+            CONFIGURATIONS Release)
+        set_tests_properties(raftpp.composition_${suite} PROPERTIES TIMEOUT 30 LABELS "module;adapter")
+    endforeach()
+endif()

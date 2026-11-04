@@ -1,3 +1,11 @@
+add_executable(raftpp_composed_io_tests composed_io.cpp allocation.cpp)
+target_link_libraries(raftpp_composed_io_tests PRIVATE raftpp::core)
+set_target_properties(raftpp_composed_io_tests PROPERTIES CXX_EXTENSIONS OFF)
+foreach(suite IN ITEMS contracts failures reentrancy snapshots limits allocations node)
+    add_test(NAME raftpp.composed_io_${suite} COMMAND raftpp_composed_io_tests ${suite})
+    set_tests_properties(raftpp.composed_io_${suite} PROPERTIES TIMEOUT 15)
+endforeach()
+
 add_executable(raftpp_framed_transport_tests framed_transport.cpp)
 target_link_libraries(raftpp_framed_transport_tests PRIVATE raftpp::core)
 set_target_properties(raftpp_framed_transport_tests PROPERTIES CXX_EXTENSIONS OFF)

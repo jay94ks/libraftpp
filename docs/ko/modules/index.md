@@ -1,6 +1,6 @@
 # 모듈별 API
 
-[English](../../en/modules/index.md)
+[English](../../en/modules/index.md) · [I/O 조립](../composition.md)
 
 모든 타입은 `raftpp` 네임스페이스에 있다. core는 필수이며 선택 모듈은 core에 의존한다. 모듈 타깃을 연결하면 C++20, 공개 헤더와 필요한 링크 조건을 전달받는다.
 
@@ -9,7 +9,7 @@
 | [core](core.md) | `raftpp::core` | 항상 활성 | `<raftpp/raft.hpp>` | 합의, 노드, 값 타입, 추상 I/O·스트림·실행기·압축, RPC framing |
 | [uv](uv.md) | `raftpp::uv` | `RAFTPP_WITH_UV` | `<raftpp/uv/uv.hpp>` | Linux 영속 I/O·타이머, TCP·pipe·TTY 스트림과 transport |
 | [asyncpp](asyncpp.md) | `raftpp::asyncpp` | `RAFTPP_MODULE_ASYNCPP` | `<raftpp/asyncpp/asyncpp.hpp>` | dispatcher 기반 콜백 실행기 |
-| [asio](asio.md) | `raftpp::asio` | `RAFTPP_MODULE_ASIO` | `<raftpp/asio/asio.hpp>` | standalone Asio 실행기와 TCP 스트림 |
+| [asio](asio.md) | `raftpp::asio` | `RAFTPP_MODULE_ASIO` | `<raftpp/asio/asio.hpp>` | standalone Asio 실행기·타이머와 TCP 스트림 |
 | [mvfst](mvfst.md) | `raftpp::mvfst` | `RAFTPP_MODULE_MVFST` | `<raftpp/mvfst/mvfst.hpp>` | 연결된 mvfst 양방향 QUIC 스트림 |
 | [msquic](msquic.md) | `raftpp::msquic` | `RAFTPP_MODULE_MSQUIC` | `<raftpp/msquic/msquic.hpp>` | MsQuic API 소유권과 연결된 QUIC 스트림 |
 | [lz4](lz4.md) | `raftpp::lz4` | `RAFTPP_MODULE_LZ4` | `<raftpp/lz4/lz4.hpp>` | LZ4 프레임 코덱 |
@@ -36,3 +36,5 @@ target_link_libraries(app PRIVATE raftpp::asio raftpp::zstd)
 하나의 노드·transport에 연결하는 스트림과 I/O 콜백은 같은 직렬 실행 영역을 사용해야 한다. 어댑터는 이벤트 루프 사이의 자동 전달이나 노드 동기화를 제공하지 않는다. QUIC 연결·TLS·peer 인증·재접속은 애플리케이션 connector가 담당한다. 디스크/타이머 `io`는 UV가 제공한다. 실행기는 콜백 제출 API이며 코루틴·future 기반 Raft API를 추가하지 않는다.
 
 쓰기 성공은 각 SDK의 로컬 수락/완료이며 Raft commit이나 원격 애플리케이션 ACK가 아니다. 즉시 제출 실패 시 완료 콜백은 호출하지 않는다. 종료 후에도 수락된 작업과 native 정리가 끝날 때까지 실행 영역을 계속 구동한다. 세부 차이는 각 모듈 문서와 [공통 스트림 계약](../streams.md)을 따른다.
+
+`make_io(io_components)`로 저장소·타이머·network와 선택 snapshot codec을 조립해 노드에 전달할 수 있다. UV는 `uv_storage`·`uv_timer`, Asio는 `asio_timer`를 제공한다. 구체 조합은 [I/O 조립](../composition.md)을 따른다.

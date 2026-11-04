@@ -1,6 +1,6 @@
 # zlib Module API
 
-[한국어](../../ko/modules/zlib.md) · [Modules](index.md)
+[한국어](../../ko/modules/zlib.md) · [Modules](index.md) · [I/O composition](../composition.md)
 
 `zlib_codec final : compression_codec` synchronously compresses/decompresses a zlib-wrapped DEFLATE stream. Select `RAFTPP_MODULE_ZLIB=ON`, link `raftpp::zlib`, and include `<raftpp/zlib/zlib.hpp>`. Depends on core and `ZLIB::ZLIB` from `find_package(ZLIB)`. UV is not required. See [dependencies](../dependencies.md) for SDK preparation/discovery.
 
@@ -70,4 +70,4 @@ Retain input for the duration of the call. The example's decoded limit is 8 MiB;
 
 Uses the zlib wrapper. It does not auto-detect gzip files or raw DEFLATE; those inputs return `corrupt`. No dictionary argument is provided; dictionary-required input also returns `corrupt`. Selecting this module does not convert Raft messages or UV snapshots to DEFLATE.
 
-Selecting a codec does not automatically alter storage/network formats or snapshot compression. See [streams/executors/codecs](../streams.md) and [buffers](../storage.md) for common ownership and abstract interfaces.
+Enabling the module does not automatically change formats or snapshot compression. Explicitly assigning the codec to `io_components::snapshot_codec` stores/restores the snapshot envelope described in [I/O composition](../composition.md). See [streams/executors/codecs](../streams.md) and [buffers](../storage.md) for common ownership and abstract interfaces.

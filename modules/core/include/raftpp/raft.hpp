@@ -21,6 +21,7 @@
 #include <raftpp/framed_transport.hpp>
 #include <raftpp/executor.hpp>
 #include <raftpp/compression.hpp>
+#include <raftpp/composed_io.hpp>
 #if RAFTPP_WITH_FIXTURE
 #include <raftpp/fixture.hpp>
 #endif

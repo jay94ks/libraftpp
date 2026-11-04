@@ -30,7 +30,7 @@ if(_features MATCHES "#define RAFTPP_WITH_FIXTURE 0"
     message(FATAL_ERROR "Disabled fixture header leaked into the installed package")
 endif()
 foreach(private_header IN ITEMS byte.hpp election.hpp receive.hpp tracing.hpp disk.hpp file.hpp
-        writer.hpp log_writer.hpp file_backend.hpp probe.hpp segment_buffer.hpp)
+        writer.hpp log_writer.hpp file_backend.hpp probe.hpp segment_buffer.hpp snapshot_format.hpp)
     if(EXISTS "${_public_include}/raftpp/detail/${private_header}")
         message(FATAL_ERROR "Private header was installed: ${private_header}")
     endif()

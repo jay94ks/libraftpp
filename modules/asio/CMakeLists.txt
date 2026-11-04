@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 include("${CMAKE_CURRENT_LIST_DIR}/../../cmake/dependency-module.cmake")
 raftpp_add_dependency_module(asio)
+target_sources(raftpp_asio PRIVATE src/timer.cpp)
 
 find_package(Threads REQUIRED)
 if(EXISTS "${RAFTPP_DEPS_DIR}/asio/asio/include/asio.hpp")

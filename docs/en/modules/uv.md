@@ -1,6 +1,6 @@
 # UV Module API
 
-[한국어](../../ko/modules/uv.md) · [Modules](index.md)
+[한국어](../../ko/modules/uv.md) · [Modules](index.md) · [I/O composition](../composition.md)
 
 `RAFTPP_WITH_UV=ON` provides `raftpp::uv` and `<raftpp/uv/uv.hpp>`. Requires Linux, libuv 1.18.0 or newer, and the necessary Linux headers. Core is linked transitively.
 
@@ -18,6 +18,8 @@ target_link_libraries(app PRIVATE raftpp::uv)
 | `uv_stream.hpp` | `uv_stream : byte_stream`, `stream_deleter`; native TCP/pipe/TTY handle ownership | [Stream API](../uv_stream.md) |
 | `uv_stream_transport.hpp` | `uv_stream_transport`, `tcp_stream_transport`, accept/connect callbacks | [Connection API](../uv_stream.md) |
 | `stream_transport.hpp` | `stream_transport : transport`, `stream_transport_options`; framing/queues/retries over raw connectors | [Message adapter](../stream_transport.md) |
+| `uv_storage.hpp` | `uv_storage : storage`; composable durable file storage | [I/O composition](../composition.md) |
+| `uv_timer.hpp` | `uv_timer : timer`; independent periodic timer/clock | [I/O composition](../composition.md) |
 | `compression.hpp` | `is_compressed`, `decompress`; LZ4 snapshot detection/reading | Compression helpers below |
 
 All headers are under `<raftpp/uv/...>`. `uv_stream` is move-only and default-constructs empty. The other concrete I/O/transport objects above are noncopyable. `uv_stream_transport` is an abstract interface for application connectors.
@@ -60,3 +62,29 @@ raftpp::shared<raftpp::uv_io> make_backend(uv_loop_t& loop,
 ```
 
 Create a readable/writable directory beforehand. Pass the result to a node as `shared<io>` so the node controls initialization/load/start/close. Retain the loop through node shutdown. Constructors may throw allocation exceptions. See [I/O](../uv_io.md), [TCP](../tcp_transport.md), and [errors](../errors.md) for configuration/native failure codes and `error_details()`.
+
+## Composable Storage and Timer
+
+`uv_storage final : storage` in `<raftpp/uv/uv_storage.hpp>` provides existing disk operations, log barriers, and snapshot publication/recovery without networking or a node periodic timer.
+
+```cpp
+uv_storage(uv_loop_s& loop, fs::path directory, uv_io_options options = {});
+```
+
+`init`, `bootstrap`, `recover`, `load`, `set_term`, `set_vote`, `truncate`, `append`, `snapshot_put`, `snapshot_get`, `capacity`, `error_details`, and `close` implement the [storage contract](../composition.md), preserving [existing I/O](../uv_io.md) disk options/formats/native errors. Reuses `uv_io_options` for segment/block size, disk retries, auto recovery, snapshot-read bounds, and tracing. Methods preserve the return-value/callback model. Noncopyable/nonmovable; borrows the loop and requires calls on its loop thread. Construction may throw allocation exceptions; create the directory before init. File operations may run on libuv workers, with completions returning to the owning loop. Close drains accepted storage work/native cleanup.
+
+`uv_timer final : timer` in `<raftpp/uv/uv_timer.hpp>` provides an independent node timer.
+
+```cpp
+explicit uv_timer(uv_loop_s& loop);
+error_code start(unsigned interval, completion tick) noexcept override;
+void close(close_callback callback = {}) noexcept override;
+uint64_t time() const noexcept override;
+error_info error_details() const noexcept override;
+```
+
+Borrows the loop and initializes a native timer during construction. Allocation/native initialization failure throws. Requires positive interval/nonempty tick, otherwise `invalid`; repeated start returns `busy`; start after closing returns `shutdown`. Callback-owner allocation failure returns `out_of_memory`; native start failure returns `io_error`; failed submission invokes no tick. Normal ticks carry an empty error code. `time()` is libuv's cached monotonic millisecond time, updated while driving the loop.
+
+Noncopyable/nonmovable. Methods/destruction/callbacks use the loop thread. Close waits for native close/active ticks before invoking the first nonempty observer; already closed completes inline. Destruction initiates asynchronous close. Callback exceptions record diagnostics and initiate shutdown. Release the loop after both storage and timer close.
+
+Pass both objects to `make_io` to form a node backend with user-selected transport/snapshot codec. Existing `uv_io` construction/timer/network settings remain a separate path.

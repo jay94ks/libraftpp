@@ -1,6 +1,6 @@
 # CMake Builds and Installed Packages
 
-[한국어](../ko/cmake.md) · [Event Core](core.md) · [libuv I/O](uv_io.md) · [Tracing](tracing.md) · [Module APIs](modules/index.md)
+[한국어](../ko/cmake.md) · [Event Core](core.md) · [libuv I/O](uv_io.md) · [Tracing](tracing.md) · [Module APIs](modules/index.md) · [I/O composition](composition.md)
 
 `raftpp::raftpp` is the interface target aggregating enabled module libraries and their C++20 usage requirements. Use CMake 3.20 or newer. Source builds, tests, examples, tools, and installed-package consumers require only a C++ compiler. Module libraries are `raftpp::core` (always enabled), `raftpp::uv` (with `RAFTPP_WITH_UV=ON`), and selected `RAFTPP_MODULE_<NAME>` adapters. Link the aggregate target to use all enabled modules, or a module target for its API; UV transitively links core.
 

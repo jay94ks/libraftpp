@@ -1,6 +1,6 @@
 # Core Module API
 
-[한국어](../../ko/modules/core.md) · [Modules](index.md)
+[한국어](../../ko/modules/core.md) · [Modules](index.md) · [I/O composition](../composition.md)
 
 `raftpp::core` is always enabled and mandatory. `<raftpp/raft.hpp>` collects core public APIs, which use the standard aliases and ownership meanings in `<raftpp/common.hpp>`. Core is usable without an external networking SDK.
 
@@ -85,3 +85,5 @@ uint32_t random_within_range(uint32_t& state, uint32_t minimum,
 ```
 
 Available from `<raftpp/random.hpp>`. Updates caller-owned `state` and returns a value in the inclusive range. Requires `minimum <= maximum`. Equal seeds reproduce the same sequence; a singleton range returns its value without advancing state. This is not a cryptographic random API; callers serialize concurrent state access.
+
+`storage.hpp`, `timer.hpp`, and `composed_io.hpp` provide `make_io(io_components)` for `shared<io>` built from user-selected storage/timer/transport/snapshot-codec components. See [I/O composition](../composition.md) for construction validation, options, init/close, and format contracts.

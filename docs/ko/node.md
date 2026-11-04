@@ -1,6 +1,6 @@
 # 노드, I/O와 상태 머신
 
-[English](../en/node.md) · [이벤트 코어](core.md) · [버퍼, 엔트리와 스냅샷](storage.md) · [메시지 인코딩](encoding.md) · [가상 시간 Fixture](fixture.md) · [서버·클러스터 예제](examples.md)
+[English](../en/node.md) · [이벤트 코어](core.md) · [버퍼, 엔트리와 스냅샷](storage.md) · [메시지 인코딩](encoding.md) · [가상 시간 Fixture](fixture.md) · [서버·클러스터 예제](examples.md) · [I/O 조립](composition.md)
 
 `<raftpp.hpp>`를 포함하고 CMake 타깃 `raftpp::raftpp`에 연결한다. 이름은 `raftpp` 네임스페이스에 있다. 아래 API는 C++20을 사용하며 `RAFTPP_WITH_UV`, `RAFTPP_WITH_LZ4`, `RAFTPP_WITH_FIXTURE`와 무관하게 사용할 수 있다. 사용자는 `io`와 `state_machine`을 구현해 노드에 전달한다.
 

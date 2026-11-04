@@ -1,6 +1,6 @@
 # lz4 모듈 API
 
-[English](../../en/modules/lz4.md) · [모듈 목록](index.md)
+[English](../../en/modules/lz4.md) · [모듈 목록](index.md) · [I/O 조립](../composition.md)
 
 `lz4_codec final : compression_codec`는 LZ4 프레임을 동기 압축·해제한다. `RAFTPP_MODULE_LZ4=ON`, `raftpp::lz4`, `<raftpp/lz4/lz4.hpp>`를 사용한다. core와 PkgConfig의 `liblz4 >= 1.7.1`에 의존한다. UV는 필요하지 않다. SDK 준비·검색은 [의존성](../dependencies.md)을 따른다.
 
@@ -70,4 +70,4 @@ raftpp::error_code round_trip(raftpp::view<const raftpp::byte> input,
 
 이 옵션은 `RAFTPP_WITH_LZ4`와 독립이다. 후자는 UV snapshot 디코더를 활성화하며 UV가 필요하다. `lz4_codec`은 UV 없이 사용하며, UV의 free 함수 `decompress`와 달리 뒤따르는 프레임/추가 바이트를 거부하고 출력 allocator를 보존한다. [UV 압축 계약](uv.md)을 참고한다.
 
-코덱 선택은 저장/네트워크 형식이나 snapshot 압축을 자동 변경하지 않는다. 공통 소유권과 추상 인터페이스는 [스트림·실행기·코덱](../streams.md), [버퍼](../storage.md)를 따른다.
+모듈 활성화만으로 형식이나 snapshot 압축을 변경하지 않는다. 코덱 객체를 `io_components::snapshot_codec`에 명시적으로 지정하면 [I/O 조립](../composition.md)의 snapshot envelope로 저장/복원한다. 공통 소유권과 추상 인터페이스는 [스트림·실행기·코덱](../streams.md), [버퍼](../storage.md)를 따른다.

@@ -1,6 +1,6 @@
 # 선택 어댑터 모듈
 
-[English](../en/dependencies.md) · [모듈별 API](modules/index.md)
+[English](../en/dependencies.md) · [모듈별 API](modules/index.md) · [I/O 조립](composition.md)
 
 `raftpp::core`는 필수 모듈이다. 선택 SDK 모듈도 core에 의존한다. `deps/`는 상류 소스와 독립 SDK 준비 빌드를, `modules/<name>/`은 실제 어댑터·공개 헤더·CMake 빌드 규칙을 제공한다. SDK 준비 빌드 자체는 raftpp 모듈이 아니다.
 
@@ -9,7 +9,7 @@
 | 옵션 (기본 OFF) | 타깃 | 공개 헤더 | 연결 범위 |
 | --- | --- | --- | --- |
 | [`RAFTPP_MODULE_ASYNCPP`](modules/asyncpp.md) | `raftpp::asyncpp` | `<raftpp/asyncpp/asyncpp.hpp>` | `asyncpp_executor : executor` |
-| [`RAFTPP_MODULE_ASIO`](modules/asio.md) | `raftpp::asio` | `<raftpp/asio/asio.hpp>` | `asio_stream : byte_stream`, `asio_executor : executor` |
+| [`RAFTPP_MODULE_ASIO`](modules/asio.md) | `raftpp::asio` | `<raftpp/asio/asio.hpp>` | `asio_stream : byte_stream`, `asio_executor : executor`, `asio_timer : timer` |
 | [`RAFTPP_MODULE_MVFST`](modules/mvfst.md) | `raftpp::mvfst` | `<raftpp/mvfst/mvfst.hpp>` | `mvfst_stream : byte_stream` |
 | [`RAFTPP_MODULE_MSQUIC`](modules/msquic.md) | `raftpp::msquic` | `<raftpp/msquic/msquic.hpp>` | `msquic_stream : byte_stream`, `open_msquic_api()` |
 | [`RAFTPP_MODULE_LZ4`](modules/lz4.md) | `raftpp::lz4` | `<raftpp/lz4/lz4.hpp>` | `lz4_codec : compression_codec`, liblz4 ≥ 1.7.1 |

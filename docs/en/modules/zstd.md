@@ -1,6 +1,6 @@
 # Zstandard Module API
 
-[한국어](../../ko/modules/zstd.md) · [Modules](index.md)
+[한국어](../../ko/modules/zstd.md) · [Modules](index.md) · [I/O composition](../composition.md)
 
 `zstd_codec final : compression_codec` synchronously compresses/decompresses a Zstandard frame. Select `RAFTPP_MODULE_ZSTD=ON`, link `raftpp::zstd`, and include `<raftpp/zstd/zstd.hpp>`. Depends on core and `zstd` CONFIG package providing `zstd::libzstd_shared` or `zstd::libzstd_static`. UV is not required. See [dependencies](../dependencies.md) for SDK preparation/discovery.
 
@@ -70,4 +70,4 @@ Retain input for the duration of the call. The example's decoded limit is 8 MiB;
 
 Handles Zstandard frames without a dictionary argument. It does not decode dictionary-dependent input using a separately configured dictionary context. Selecting this module does not convert Raft messages or UV snapshots to Zstandard.
 
-Selecting a codec does not automatically alter storage/network formats or snapshot compression. See [streams/executors/codecs](../streams.md) and [buffers](../storage.md) for common ownership and abstract interfaces.
+Enabling the module does not automatically change formats or snapshot compression. Explicitly assigning the codec to `io_components::snapshot_codec` stores/restores the snapshot envelope described in [I/O composition](../composition.md). See [streams/executors/codecs](../streams.md) and [buffers](../storage.md) for common ownership and abstract interfaces.

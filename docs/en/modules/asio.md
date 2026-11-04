@@ -1,6 +1,6 @@
 # Asio Module API
 
-[한국어](../../ko/modules/asio.md) · [Modules](index.md)
+[한국어](../../ko/modules/asio.md) · [Modules](index.md) · [I/O composition](../composition.md)
 
 `RAFTPP_MODULE_ASIO=ON` provides `raftpp::asio` and `<raftpp/asio/asio.hpp>`. Uses standalone Asio; the target propagates core, Threads, and `ASIO_STANDALONE` usage requirements. Do not pass Boost.Asio types.
 
@@ -79,3 +79,19 @@ raftpp::shared<raftpp::framed_transport> make_asio_transport(
 ```
 
 Complete connection/peer authentication and match the socket's execution domain to node I/O. Let the I/O backend own the returned transport's init/start/close lifecycle. There is no automatic bridge connecting a separate context directly to UV I/O. This module provides neither a separate durable I/O backend nor a TCP listener API. Also follow the [common stream contract](../streams.md).
+
+## Composable `asio_timer`
+
+```cpp
+explicit asio_timer(asio::any_io_executor executor);
+error_code start(unsigned interval, completion tick) noexcept override;
+void close(close_callback callback = {}) noexcept override;
+uint64_t time() const noexcept override;
+error_info error_details() const noexcept override;
+```
+
+`asio_timer final : timer` uses `asio::steady_timer` for positive-millisecond periodic ticks. Successful ticks carry an empty `error_code`; native wait/rearm failure reports an error and ends the subscription. Zero interval/empty callback returns `invalid`, repeated start returns `busy`, and start during close returns `shutdown`. Submission allocation failure returns `out_of_memory`, other failures `io_error`. Initial submission failure invokes no tick.
+
+The object is noncopyable/nonmovable. It stores the native executor value without extending `io_context` lifetime. Serialize methods/destruction/callbacks on the same thread/strand and keep driving the context. `time()` is the steady clock in milliseconds. Close cancels/drains waits and waits for active tick callbacks. Failed native cancellation may require waiting for that wait to finish. Retains the first nonempty pending close observer. Already closed completes inline; destruction initiates shutdown without waiting. Callback exceptions initiate shutdown/diagnostics instead of propagating.
+
+Pass it as `io_components::timer` for node ticks/time. Supplying an `asio_executor` does not replace a timer. Use the same execution domain as storage/network in [I/O composition](../composition.md).

@@ -1,6 +1,6 @@
 # Streams, Framing, Executors and Codecs
 
-[한국어](../ko/streams.md) · [Module APIs](modules/index.md)
+[한국어](../ko/streams.md) · [Module APIs](modules/index.md) · [I/O composition](composition.md)
 
 The mandatory `raftpp::core` target provides `<raftpp/stream.hpp>`, `<raftpp/framed_transport.hpp>`, `<raftpp/executor.hpp>` and `<raftpp/compression.hpp>`. Optional [adapter modules](dependencies.md) implement these abstractions. Types use namespace `raftpp`.
 

@@ -1,6 +1,6 @@
 # Native 서버와 클러스터 예제
 
-[English](../en/examples.md) · [노드 API](node.md) · [libuv I/O](uv_io.md) · [TCP 전송](tcp_transport.md) · [Native Submit Benchmark](benchmark.md)
+[English](../en/examples.md) · [노드 API](node.md) · [libuv I/O](uv_io.md) · [TCP 전송](tcp_transport.md) · [Native Submit Benchmark](benchmark.md) · [I/O 조립](composition.md)
 
 예제는 `node`, `uv_io`, `tcp_transport`와 소유권을 지원하는 counter 상태 머신을 조합한다. C++ 라이브러리를 사용한다. 각 서버는 별도 프로세스·이벤트 루프·영속 디렉터리를 갖는다. `RAFTPP_BUILD_EXAMPLES`의 기본값은 OFF이며 활성화하려면 Linux에서 `RAFTPP_WITH_UV=ON`이어야 한다. fixture·LZ4·테스트 활성화는 요구하지 않는다.
 

@@ -8,6 +8,8 @@
 
 ## 전체 상태
 
+사용자 선택형 I/O 조립(2026-11-04): `storage`·`timer`·`make_io`와 UV 저장소/타이머·Asio 타이머를 구현했다. 사용자가 transport와 선택 snapshot codec을 조합한다. core 계약 7개, UV 없는 Asio TCP 클러스터, 실제 codec별 snapshot 재시작, ASan/UBSan 13개 범위와 정적/공유 설치 소비자를 검증했다. 기존 `uv_io`는 유지하며 내장 영속 저장소는 UV만 제공한다. 상세 범위·최초 실패·재사용 조건은 아래 단위에 기록했다.
+
 모듈별 API 설명서 단위(2026-11-04): core/uv와 일곱 선택 어댑터, 모듈 목록의 한·영 설명서 10쌍을 추가했다. 공개 API·소유권·콜백·오류·옵션·사용 예제와 기존 기능별 문서 탐색을 정리했다. 문서 전체 31쌍/상대 링크 638개와 새 코드·서명 블록 대응을 확인했다. 문서만 수정하여 제품 빌드·테스트는 생략 — 기존 결과 재사용으로 기록한다.
 
 core 추상 인터페이스의 실제 어댑터 구현을 추가했다. 공통 `byte_stream`·`executor`·`compression_codec`와 `framed_transport`, 일곱 모듈의 스트림/실행기/코덱을 연결했다. 새 계약 검사 8개가 Release와 ASan/UBSan에서 각각 범위별 통과했고, 관련 UV/압축 18개와 정적/공유 설치 소비자를 확인했다. 최초 실패·중단과 선택 재개 결과는 아래 새 단위에 보존한다. QUIC 연결/TLS 수립과 별도 영속 `io` 전체를 제공하는 모듈은 아니며 해당 경계는 애플리케이션 connector와 기존 UV가 담당한다.
@@ -139,6 +141,36 @@ C 라이브러리 제거·C++ 자체 테스트 전환·포맷 통일을 완료�
 기반 구성요소와 메모리 로그·스냅샷을 내부 이벤트 구동 합의 코어에 연결했다. 메모리상 클러스터에서 선거·복제·commit·멤버십·리더십 이전·분할·복구를 C와 비교한다. 공개 callback 노드 API와 I/O·FSM 인터페이스를 구현했으며 모의 backend로 검증한다. RPC·디스크 배치 직렬화와 체크섬을 독립 구현하고 형식 비교·검증을 마쳤다. 메타데이터·스냅샷·segment의 동기 파일 계층과 저장 상태 복구, direct I/O·KAIO writer와 로그 쓰기 coordinator도 구현했다. 테스트용 I/O 어댑터로 실제 디스크를 사용하는 단일 노드의 종료·재시작을 검사했다. 스냅샷·파일 coordinator와 공개 `uv_io`는 실제 저장·타이머를 추상 메시지 전송에 연결한다. 구체적인 `tcp_transport`를 `uv_io`와 노드에 연결했다. 실제 디스크·TCP 노드를 구성할 수 있다. 기본 추적과 메모리 resource의 버퍼·객체·코어/native 컨테이너 연결을 구현했다. 독립 공개 C++ 가상 시간 fixture로 메모리 I/O와 클러스터 제어를 제공한다. native 예제와 submit/disk benchmark·kernel perf/trace를 구현했다. 전체 API·호환 범위의 현재 판정은 아래 최종 감사 표를 따르며 실제 커널 측정/장치 실행의 제한은 별도로 유지한다.
 
 기존 C 구현은 `raft/`에 비교 기준으로 보존한다. `raftpp::raft`는 기존 C 라이브러리, `raftpp::raftpp`는 독립적으로 구현한 C++ 구성요소를 제공한다. 기존 C 타깃이 빌드되거나 기능 플래그가 활성화되었다는 사실은 C++ 계층 전체의 이식 완료를 의미하지 않는다.
+
+### 사용자 선택형 I/O 조립 (2026-11-04)
+
+core에 `storage`, `timer`, `io_components`와 `make_io()`를 추가했다. 사용자가 필수 저장소·타이머·transport와 선택 `compression_codec`을 직접 조합하면 기존 `io`/`node`의 요청·완료 콜백 API로 사용한다. 특정 SDK 조합이나 코루틴/future API를 강제하지 않는다. core는 선택 SDK 없이 빌드된다. `executor`는 기존 콜백 제출 경계이며 저장소/타이머로 자동 변환하지 않는다.
+
+UV에는 기존 디스크 조정 계층을 재사용하는 `uv_storage`와 독립 `uv_timer`, Asio에는 `asio_timer`를 추가했다. `uv_storage`의 비공개 storage-only 경로는 network와 노드 tick 타이머를 만들지 않으며 기존 파일 동기화·retry·barrier·정리 정책을 유지한다. 공개 `uv_io` 생성자/동작은 유지했다. 내장 영속 저장소는 여전히 UV뿐이다. UV 없는 영속화에는 사용자 `storage` 구현이 필요하며, Asio/QUIC 어댑터에 파일 백엔드를 구현했다고 기록하지 않는다.
+
+조립기는 부품의 init/start/close 수명을 독점 관리하고 수락한 요청·배치·메시지·원본/인코딩 snapshot을 완료까지 유지한다. 동기/인라인 완료, 제출 실패, 예외/OOM, 콜백 재진입, facade 해제와 부분 초기화 실패를 처리한다. 종료는 모든 부품·요청·활성 콜백 정리와 보유 payload 해제 후 알린다. 모든 부품과 노드/FSM 호출은 같은 직렬 실행 영역에서 실행해야 하며 자동 스레드/loop bridge를 제공하지 않는다.
+
+선택 codec은 snapshot payload만 v1 envelope(magic 8바이트, little-endian encoding/원문 길이 각 8바이트)로 저장하고 읽을 때 해제한다. codec 없는 일반 원문은 그대로 유지하며 예약 magic과 겹치는 새 원문은 escape한다. 원문/인코딩 상한, 잘린 입력·미지원 encoding·길이 불일치·코덱 누락·실패 시 출력 보존을 검사한다. RPC/로그/메타데이터 형식과 기존 `uv_io`의 원문/LZ4 경로는 변경하지 않았다. 새 envelope는 opt-in 저장 경로이며 codec 식별자/사전을 저장하지 않는다. 같은 codec 설정으로 `make_io`를 사용해 다시 열어야 하고 legacy `uv_io`는 이를 해제하지 않는다. 예약 magic으로 시작하는 이전 원문은 별도 변환이 필요하다.
+
+참조 범위는 core I/O·node/FSM·transport/framing·snapshot/codec·buffer/error/random의 입력/출력·소유/정리 경로, UV 파일 조정·load/close·네이티브 timer, Asio executor/stream/timer와 사용 SDK API, 모듈/생성 헤더/설치/예제/테스트 규칙이다. 실제 수정은 조립 API·구현, UV 저장소 facade/두 timer, 관련 빌드·테스트/소비자·예제와 한·영 API/기록이다. 합의 알고리즘과 기존 디스크 계층을 재작성하지 않았다. `docs/{ko,en}/composition.md` 및 관련 모듈 문서는 사용 계약만 설명한다. 새 `raftpp-example-composed DIRECTORY [none|lz4|zstd|zlib] [uv|asio]`는 사용자가 고른 codec/timer로 snapshot 게시/종료와 재시작 복원을 보여준다.
+
+환경과 재사용 조건: Linux x86-64, GCC 13.3.0, CMake 3.28.3, libuv 1.48.0, 기존 SDK prefix `/tmp/raftpp-sdk-build/prefix`와 상류 checkout을 사용했다. 모든 어댑터·설치 소비자·예제 검증은 Release다. 일반 구성은 `-Wall -Wextra -Wpedantic -Werror`; fixture/backtrace는 OFF다. 다음 프로필별 실행/생략을 구분하며 아래 개수는 전체 suite 통과 수가 아니다.
+
+| 검사 | 실행/생략/미검증 | 결과 또는 참조할 이전 기록 | 변경 영향 또는 생략 이유 |
+| --- | --- | --- | --- |
+| core-only 조립 계약 | 실행 | `/tmp/raftpp-composition-core`: 서로 다른 7개 `composed_io_{contracts,failures,reentrancy,snapshots,limits,allocations,node}` 통과. 최초 6개 `/tmp/raftpp-composition-core-tests-first.log`, 추가 limits/소비자 `/tmp/raftpp-composition-core-limits-package.log`, 0바이트 codec frame 추가 후 limits `/tmp/raftpp-composition-core-empty-frame-tests.log` | UV/LZ4/모든 SDK OFF, 정적 Release. 요청/콜백/close 순서·수명·상태/출력 보존·할당 실패·singleton node. 마지막 빈 frame 복사 guard의 추가 영향은 limits로 재검증하고 해당 경로를 사용하지 않는 최초 6개 결과는 재사용 |
+| UV 없는 Asio 조립 | 실행 | `/tmp/raftpp-composition-asio`: `composition_timer`, `composition_cluster` 2개 통과. `/tmp/raftpp-composition-asio-tests.log` | Asio만 ON, UV/LZ4 OFF, 정적 Release. 실제 TCP stream+framed_transport+Asio timer+독립 메모리 저장소 모델의 3노드 선출·복제·종료. 내구성 파일 검사가 아님 |
+| 공유 native 조합·기존 UV 회귀 | 실행 | `/tmp/raftpp-composition-native`: 새 `composition_{timer,cluster,uv,lz4,zstd,zlib}` 6개, 수정 `module_asio` 1개, 기존 UV 9개가 각각 통과. 최초 12개 통과 기록 `/tmp/raftpp-composition-native-tests-first.log`, 수정 후 영속 조합 4개 `/tmp/raftpp-composition-native-aligned-tests.log` | UV/LZ4 및 Asio/LZ4/Zstd/zlib 모듈 ON, 나머지 SDK OFF, 공유 Release. UV 저장소+UV timer/무압축 및 UV 저장소+Asio timer/각 codec의 실제 snapshot 재시작. 기존 9개는 `uv_io_{lifetime,node,limits,allocation,cluster,settings}`, `snapshot_files`, `compressed_snapshot`, `storage_load_contracts` |
+| ASan/UBSan 조립 수명 | 실행 | `/tmp/raftpp-adapters-sanitizer`: 서로 다른 13개(core 7+조합 6) 범위별 통과. 최초 core 7/timer/TCP 2 통과는 `/tmp/raftpp-composition-sanitizer-tests.log`; 영속 조합 4개와 변경된 limits는 `/tmp/raftpp-composition-sanitizer-aligned-tests.log` | 공유 Release, 모든 SDK/UV/LZ4 ON이지만 해당 타깃은 core/Asio/UV/3 codec만 연결. `-fsanitize=address,undefined -fno-omit-frame-pointer`, `ASAN_OPTIONS=detect_leaks=0`, `UBSAN_OPTIONS=halt_on_error=1`. LSan 제외, 외부 SDK 바이너리는 비계측. 최초 실패 4개를 통과로 재사용하지 않음 |
+| 이동한 설치본 소비자 | 실행 | `package_install`이 core-only 정적/Asio-only 정적/native 공유의 세 프로필에서 각각 통과. 내부 소비자 각 3/5/9개 통과. `/tmp/raftpp-composition-core-limits-package.log`, `/tmp/raftpp-composition-asio-package.log`, `/tmp/raftpp-composition-native-package.log` | aggregate/core/UV/Asio/활성 codec 및 격리 core/Asio 소비. 새 factory·timer/storage 헤더/export와 SDK 없는 선택 소비 검증. 각 `/tmp/raftpp-composition-*/tests/package-install/Release/*/Testing/Temporary/LastTest.log` 보존 |
+| 새 예제와 선택 기능 OFF | 실행 | Zstd+Asio fresh/restart에서 `value=1`, `value=2`: `/tmp/raftpp-composition-example-roundtrip.log`. 같은 native 빌드에서 SDK 7개/UV LZ4 OFF, UV ON으로 예제 재빌드 후 none+UV fresh/restart 1→2; 비활성 Zstd/Asio 선택은 exit 1. `/tmp/raftpp-composition-minimal-example.log` | 새 예제의 실제 callback·snapshot 완료와 재시작, 선택 헤더/링크 분기. 원래 native 옵션은 configure로 복구했으며 복구 자체로 검사를 반복하지 않음 |
+| 최초 실패·수정 경위 | 실행 기록 보존 | `/tmp/raftpp-composition-core-tests-build*.log`, native `*-build-first.log`, `*-build-fixed.log`, `*-tests-first.log`, `*-persistence-tests.log`, `*-ready-capacity-tests.log` 및 sanitizer 대응 로그 | 테스트의 entry 타입/enum 오류, SDK의 없는 `cancel(error_code&)` 사용, 누락 config include에 따른 unknown suite를 수정. 영속 테스트 최초 15바이트 명령은 UV 로그의 8바이트 배수 조건을 어겨 invalid; readiness만으로 해결되지 않음을 확인하고 16바이트로 수정. 최초 실패 시 테스트 정리의 abort/SegFault도 보존하며 RAII loop 정리/공유 callback 상태로 수정. 이를 제품 회귀/통과로 재분류하지 않음 |
+| 한·영 API/링크/포맷 | 실행 | 문서 32쌍, 상대 링크 694개 오류 없음; 모듈 코드/서명 35블록과 조립 문서 코드 3블록 일치(번역 주석 제외). `/tmp/raftpp-composition-docs-validation.json`. 수정/추가 C++ 22파일의 clang-format 검사와 `git diff --check` 통과 | 새 composition 문서/모듈 계약/탐색 및 실제 코드와 비교. 새 예제 실행을 모든 문서 코드 블록 실행으로 보고하지 않음 |
+| 변경 없는 SDK/전체 suite/추가 matrix | 생략 — 기존 결과 재사용 | 앞선 `core 추상 인터페이스의 실제 어댑터 (2026-11-03–04)`의 framed_transport·asyncpp/mvfst/msquic/codec 고유 계약·소비 결과와 이전 기능별 기록 | 해당 구현/SDK checkout/직접 검증 입력은 변경 없음. core에 추가한 조립 경로는 위 새 검사로 검증; 기존 직렬화/상태 전이 전체를 다시 실행하지 않음. 일반 codec 자체/QUIC TLS·연결 수립/상류 전체 suite도 범위를 넓히지 않음 |
+
+실행 명령은 각 프로필의 `cmake -S . -B <profile> -DCMAKE_BUILD_TYPE=Release -DRAFTPP_BUILD_TESTS=ON`과 위 옵션, `cmake --build <profile> --parallel 4 --target raftpp_composed_io_tests raftpp_composition_module_tests`(존재하는 타깃만), `ctest --test-dir <profile> -C Release -R '<해당 검사 regex>' --output-on-failure`다. 영속 조합 최종 regex는 `^raftpp\.composition_(uv|lz4|zstd|zlib)$`, 설치는 `^raftpp\.package_install$`이다. sanitizer는 같은 CTest에 위 환경 변수를 지정했다. 예제는 `cmake --build /tmp/raftpp-composition-native --parallel 4 --target raftpp_example_composed` 후 임시 디렉터리에서 두 번 실행했다. 문서 검사 스크립트는 기존 `/tmp/raftpp-check-module-docs.py`의 보고서 경로를 이번 JSON으로 분리해 실행해 과거 최초 결과를 보존했다.
+
+남은 경계: UV 외 내장 파일 저장소·자동 실행 영역 bridge·QUIC 연결/TLS 수립은 추가하지 않았다. 실제 커널/장치·전체 파일시스템·32비트·LSan 검증은 기존 제한을 유지한다. 사용자 선택형 조립과 위 부품은 구현·해당 범위 검증을 마쳤으며, 이 사실을 모든 SDK의 독립 영속 백엔드 제공으로 확대하지 않는다.
 
 ### 모듈별 API 설명서 (2026-11-04)
 

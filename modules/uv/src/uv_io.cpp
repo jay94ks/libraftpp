@@ -47,6 +47,7 @@ namespace raftpp::detail {
         error_info diagnostic;
         unsigned dispatching = 0;
         bool initialized = false, loaded = false, started = false, closing = false, closed = false;
+        bool storage_only = false;
         bool timer_alive = false, network_used = false, network_closed = false,
              files_closed = false;
 
@@ -195,6 +196,10 @@ namespace raftpp {
             pointer->maybe_finish();
         };
     }
+    uv_io::uv_io(uv_loop_s& loop, fs::path directory, uv_io_options options)
+        : uv_io(loop, std::move(directory), {}, std::move(options)) {
+        state_->storage_only = true;
+    }
     uv_io::~uv_io() {
         auto keep = state_;
         keep->begin_close();
@@ -206,7 +211,7 @@ namespace raftpp {
         keep->options.tracing.log(trace_level::trace, "initializing uv io");
         if (id == 0)
             return errc::bad_id;
-        if (address.empty() || !keep->network ||
+        if (address.empty() || (!keep->network && !keep->storage_only) ||
             (keep->options.block_size &&
              (!std::has_single_bit(keep->options.block_size) || keep->options.block_size < 512)))
             return errc::invalid;
@@ -222,18 +227,21 @@ namespace raftpp {
             if (keep->options.segment_size < keep->capabilities.block_size ||
                 keep->options.segment_size > static_cast<uint64_t>(numeric_limits<int64_t>::max()))
                 return errc::invalid;
-            keep->network_used = true;
-            if (auto error = keep->network->init(id, address))
-                return keep->remember(error, "uv.transport.init", keep->network->error_details());
-            if (uv_timer_init(keep->loop, &keep->timer) < 0)
-                return errc::io_error;
-            keep->timer.data = keep.get();
-            keep->timer_alive = true;
-            const auto wall = chrono::duration_cast<chrono::milliseconds>(
-                                  chrono::system_clock::now().time_since_epoch())
-                                  .count();
-            std::srand(static_cast<unsigned>(id) ^ static_cast<unsigned>(uv_now(keep->loop)) ^
-                       static_cast<unsigned>(wall));
+            if (!keep->storage_only) {
+                keep->network_used = true;
+                if (auto error = keep->network->init(id, address))
+                    return keep->remember(error, "uv.transport.init",
+                                          keep->network->error_details());
+                if (uv_timer_init(keep->loop, &keep->timer) < 0)
+                    return errc::io_error;
+                keep->timer.data = keep.get();
+                keep->timer_alive = true;
+                const auto wall = chrono::duration_cast<chrono::milliseconds>(
+                                      chrono::system_clock::now().time_since_epoch())
+                                      .count();
+                std::srand(static_cast<unsigned>(id) ^ static_cast<unsigned>(uv_now(keep->loop)) ^
+                           static_cast<unsigned>(wall));
+            }
             keep->initialized = true;
             return {};
         });
@@ -303,7 +311,7 @@ namespace raftpp {
         auto keep = state_;
         if (auto error = keep->available())
             return error;
-        if (!keep->loaded || keep->started || interval == 0)
+        if (!keep->loaded || keep->started || interval == 0 || keep->storage_only)
             return errc::invalid;
         error_info startup;
         const auto status = detail::guarded([&]() -> error_code {

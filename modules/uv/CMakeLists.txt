@@ -7,6 +7,8 @@ add_library(raftpp_uv
     src/log_writer.cpp
     src/file_backend.cpp
     src/uv_io.cpp
+    src/uv_storage.cpp
+    src/uv_timer.cpp
     src/tcp_transport.cpp
     src/uv_stream.cpp
     src/stream_transport.cpp

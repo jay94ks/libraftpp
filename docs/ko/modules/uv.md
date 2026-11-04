@@ -1,6 +1,6 @@
 # uv 모듈 API
 
-[English](../../en/modules/uv.md) · [모듈 목록](index.md)
+[English](../../en/modules/uv.md) · [모듈 목록](index.md) · [I/O 조립](../composition.md)
 
 `RAFTPP_WITH_UV=ON`에서 `raftpp::uv`와 `<raftpp/uv/uv.hpp>`를 제공한다. Linux, libuv 1.18.0 이상과 필요한 Linux 헤더가 필요하다. core는 전이적으로 연결된다.
 
@@ -18,6 +18,8 @@ target_link_libraries(app PRIVATE raftpp::uv)
 | `uv_stream.hpp` | `uv_stream : byte_stream`, `stream_deleter`; TCP·pipe·TTY native handle 소유 | [스트림 API](../uv_stream.md) |
 | `uv_stream_transport.hpp` | `uv_stream_transport`, `tcp_stream_transport`, accept/connect 콜백 | [연결 API](../uv_stream.md) |
 | `stream_transport.hpp` | `stream_transport : transport`, `stream_transport_options`; raw connector 위 framing·큐·재시도 | [메시지 어댑터](../stream_transport.md) |
+| `uv_storage.hpp` | `uv_storage : storage`; 조립용 영속 파일 저장소 | [I/O 조립](../composition.md) |
+| `uv_timer.hpp` | `uv_timer : timer`; 독립 주기 타이머·시계 | [I/O 조립](../composition.md) |
 | `compression.hpp` | `is_compressed`, `decompress`; LZ4 snapshot 판별·읽기 | 아래 압축 보조 함수 |
 
 헤더 경로는 모두 `<raftpp/uv/...>`다. `uv_stream`은 이동 전용이며 기본 생성 시 비어 있다. 다른 위 구체 I/O/transport 객체는 복사할 수 없다. `uv_stream_transport`는 사용자 connector가 구현하는 추상 인터페이스다.
@@ -60,3 +62,29 @@ raftpp::shared<raftpp::uv_io> make_backend(uv_loop_t& loop,
 ```
 
 디렉터리는 미리 생성하고 읽기·쓰기 가능해야 한다. 반환한 객체를 노드에 `shared<io>`로 전달하면 노드가 초기화·load·시작·종료를 호출한다. loop는 노드 종료까지 유지한다. 생성자는 할당 예외를 던질 수 있다. 설정 오류·native 실패의 반환 코드와 `error_details()`는 [I/O](../uv_io.md), [TCP](../tcp_transport.md), [오류](../errors.md)에서 설명한다.
+
+## 조립용 저장소와 타이머
+
+`<raftpp/uv/uv_storage.hpp>`의 `uv_storage final : storage`는 네트워크와 노드 주기 타이머 없이 기존 디스크 구현·로그 barrier·snapshot 게시/복구를 제공한다.
+
+```cpp
+uv_storage(uv_loop_s& loop, fs::path directory, uv_io_options options = {});
+```
+
+`init`, `bootstrap`, `recover`, `load`, `set_term`, `set_vote`, `truncate`, `append`, `snapshot_put`, `snapshot_get`, `capacity`, `error_details`, `close`는 [저장소 계약](../composition.md)을 구현하며 [기존 I/O](../uv_io.md)의 디스크 옵션·형식·native 오류와 동일한 계약을 따른다. `uv_io_options`를 재사용하므로 segment/block 크기·disk retry·auto recovery·snapshot 읽기 한도·tracer를 지정한다. 메서드는 반환값/콜백 모델을 그대로 유지한다. 타입은 복사/이동할 수 없으며 loop를 대여하고 모든 호출은 같은 loop 스레드에서 수행한다. 생성은 할당 예외를 던질 수 있고 디렉터리는 init 전에 생성한다. 파일 작업은 libuv worker에서 실행할 수 있지만 완료는 소유 loop로 돌아온다. close는 수락한 저장 작업과 native 정리를 기다린다.
+
+`<raftpp/uv/uv_timer.hpp>`의 `uv_timer final : timer`는 독립적인 노드 타이머다.
+
+```cpp
+explicit uv_timer(uv_loop_s& loop);
+error_code start(unsigned interval, completion tick) noexcept override;
+void close(close_callback callback = {}) noexcept override;
+uint64_t time() const noexcept override;
+error_info error_details() const noexcept override;
+```
+
+loop를 대여하고 생성 시 native timer를 초기화한다. 할당 실패 또는 native 초기화 실패는 예외를 던진다. 양수 interval·비어 있지 않은 tick이 필요하며 위반은 `invalid`, 반복 start는 `busy`, 종료 뒤 start는 `shutdown`이다. 콜백 owner 할당 실패는 `out_of_memory`, native start 실패는 `io_error`이며 실패한 제출에는 tick을 호출하지 않는다. 정상 tick은 빈 오류 코드를 받는다. `time()`은 libuv의 cached monotonic 밀리초이며 loop가 구동될 때 갱신된다.
+
+타이머는 복사/이동할 수 없다. 메서드·파괴·콜백은 loop 스레드에서 수행한다. close는 native close와 활성 tick을 완료한 뒤 첫 nonempty observer를 호출하며 이미 닫혔으면 인라인 완료한다. 소멸자는 비동기 close를 시작한다. 콜백 예외는 진단을 기록하고 종료한다. loop는 저장소와 타이머를 모두 닫은 뒤 해제한다.
+
+두 객체를 `make_io`에 전달하면 사용자가 선택한 transport·snapshot codec과 함께 노드 backend가 된다. 기존 `uv_io`의 생성자·주기·network 설정은 별도 경로로 유지한다.

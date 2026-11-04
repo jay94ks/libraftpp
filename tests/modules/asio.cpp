@@ -14,6 +14,21 @@ namespace {
 int main() {
     using namespace raftpp;
     asio::io_context context;
+    {
+        asio_timer timer{context.get_executor()};
+        bool closed = false;
+        if (timer.start(0, [](error_code) {}) != errc::invalid)
+            return fail(__LINE__);
+        if (timer.start(1, [&](error_code error) {
+                if (!error)
+                    timer.close([&] { closed = true; });
+            }))
+            return fail(__LINE__);
+        context.run();
+        if (!closed)
+            return fail(__LINE__);
+        context.restart();
+    }
     asio_executor schedule{context.get_executor()};
     int calls = 0;
     if (schedule.post([&] { ++calls; }) || calls)

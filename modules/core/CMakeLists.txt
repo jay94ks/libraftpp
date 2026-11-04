@@ -1,4 +1,5 @@
 add_library(raftpp_core
+    src/composed_io.cpp
     src/framed_transport.cpp
     src/memory.cpp
     src/tracing.cpp

@@ -1,6 +1,6 @@
 # Optional Adapter Modules
 
-[한국어](../ko/dependencies.md) · [Module APIs](modules/index.md)
+[한국어](../ko/dependencies.md) · [Module APIs](modules/index.md) · [I/O composition](composition.md)
 
 `raftpp::core` is mandatory. Optional SDK modules also depend on core. `deps/` provides upstream sources and an independent SDK preparation build; `modules/<name>/` provides concrete adapters, public headers and CMake rules for raftpp modules. SDK preparation itself is not a raftpp module.
 
@@ -9,7 +9,7 @@
 | Option (default OFF) | Target | Public header | Integration scope |
 | --- | --- | --- | --- |
 | [`RAFTPP_MODULE_ASYNCPP`](modules/asyncpp.md) | `raftpp::asyncpp` | `<raftpp/asyncpp/asyncpp.hpp>` | `asyncpp_executor : executor` |
-| [`RAFTPP_MODULE_ASIO`](modules/asio.md) | `raftpp::asio` | `<raftpp/asio/asio.hpp>` | `asio_stream : byte_stream`, `asio_executor : executor` |
+| [`RAFTPP_MODULE_ASIO`](modules/asio.md) | `raftpp::asio` | `<raftpp/asio/asio.hpp>` | `asio_stream : byte_stream`, `asio_executor : executor`, `asio_timer : timer` |
 | [`RAFTPP_MODULE_MVFST`](modules/mvfst.md) | `raftpp::mvfst` | `<raftpp/mvfst/mvfst.hpp>` | `mvfst_stream : byte_stream` |
 | [`RAFTPP_MODULE_MSQUIC`](modules/msquic.md) | `raftpp::msquic` | `<raftpp/msquic/msquic.hpp>` | `msquic_stream : byte_stream`, `open_msquic_api()` |
 | [`RAFTPP_MODULE_LZ4`](modules/lz4.md) | `raftpp::lz4` | `<raftpp/lz4/lz4.hpp>` | `lz4_codec : compression_codec`, liblz4 ≥ 1.7.1 |

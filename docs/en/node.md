@@ -1,6 +1,6 @@
 # Nodes, I/O, and State Machines
 
-[한국어](../ko/node.md) · [Event Core](core.md) · [Buffers, Entries, and Snapshots](storage.md) · [Message Encoding](encoding.md) · [Virtual-Time Fixture](fixture.md) · [Server and Cluster Examples](examples.md)
+[한국어](../ko/node.md) · [Event Core](core.md) · [Buffers, Entries, and Snapshots](storage.md) · [Message Encoding](encoding.md) · [Virtual-Time Fixture](fixture.md) · [Server and Cluster Examples](examples.md) · [I/O composition](composition.md)
 
 Include `<raftpp.hpp>` and link the CMake target `raftpp::raftpp`. Names are in namespace `raftpp`. These APIs use C++20 and are available regardless of `RAFTPP_WITH_UV`, `RAFTPP_WITH_LZ4`, or `RAFTPP_WITH_FIXTURE`. Provide implementations of `io` and `state_machine` to the node.
 

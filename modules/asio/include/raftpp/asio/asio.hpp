@@ -3,6 +3,7 @@
 
 #include <raftpp/executor.hpp>
 #include <raftpp/stream.hpp>
+#include <raftpp/timer.hpp>
 #include <raftpp/asio/export.hpp>
 #include <asio/any_io_executor.hpp>
 #include <asio/ip/tcp.hpp>
@@ -18,7 +19,22 @@ namespace raftpp {
     };
     namespace detail {
         struct asio_stream_state;
+        struct asio_timer_state;
     }
+    class RAFTPP_ASIO_API asio_timer final : public timer {
+    public:
+        explicit asio_timer(asio::any_io_executor executor);
+        ~asio_timer() override;
+        asio_timer(const asio_timer&) = delete;
+        asio_timer& operator=(const asio_timer&) = delete;
+        error_code start(unsigned interval, completion tick) noexcept override;
+        void close(close_callback callback = {}) noexcept override;
+        uint64_t time() const noexcept override;
+        error_info error_details() const noexcept override;
+
+    private:
+        shared<detail::asio_timer_state> state_;
+    };
     // Takes ownership of a connected TCP socket. Call methods and drive the
     // socket's executor on one thread (or one externally serialized strand).
     class RAFTPP_ASIO_API asio_stream final : public byte_stream {

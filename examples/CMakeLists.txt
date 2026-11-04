@@ -6,3 +6,7 @@ add_executable(raftpp_example_cluster cluster.cpp)
 target_link_libraries(raftpp_example_cluster PRIVATE raftpp::raftpp)
 set_target_properties(raftpp_example_cluster PROPERTIES CXX_EXTENSIONS OFF OUTPUT_NAME raftpp-example-cluster)
 add_dependencies(raftpp_example_cluster raftpp_example_server)
+
+add_executable(raftpp_example_composed composed_server.cpp)
+target_link_libraries(raftpp_example_composed PRIVATE raftpp::raftpp)
+set_target_properties(raftpp_example_composed PROPERTIES CXX_EXTENSIONS OFF OUTPUT_NAME raftpp-example-composed)

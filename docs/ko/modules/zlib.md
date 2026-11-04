@@ -1,6 +1,6 @@
 # zlib 모듈 API
 
-[English](../../en/modules/zlib.md) · [모듈 목록](index.md)
+[English](../../en/modules/zlib.md) · [모듈 목록](index.md) · [I/O 조립](../composition.md)
 
 `zlib_codec final : compression_codec`는 zlib 형식의 DEFLATE 스트림을 동기 압축·해제한다. `RAFTPP_MODULE_ZLIB=ON`, `raftpp::zlib`, `<raftpp/zlib/zlib.hpp>`를 사용한다. core와 `find_package(ZLIB)`의 `ZLIB::ZLIB`에 의존한다. UV는 필요하지 않다. SDK 준비·검색은 [의존성](../dependencies.md)을 따른다.
 
@@ -70,4 +70,4 @@ raftpp::error_code round_trip(raftpp::view<const raftpp::byte> input,
 
 zlib wrapper를 사용한다. gzip 파일이나 raw DEFLATE를 자동 판별하지 않으며 해당 입력은 `corrupt`다. 사전 인자는 없고 사전 요구 입력도 `corrupt`다. 모듈 선택만으로 Raft 메시지나 UV snapshot을 DEFLATE로 바꾸지 않는다.
 
-코덱 선택은 저장/네트워크 형식이나 snapshot 압축을 자동 변경하지 않는다. 공통 소유권과 추상 인터페이스는 [스트림·실행기·코덱](../streams.md), [버퍼](../storage.md)를 따른다.
+모듈 활성화만으로 형식이나 snapshot 압축을 변경하지 않는다. 코덱 객체를 `io_components::snapshot_codec`에 명시적으로 지정하면 [I/O 조립](../composition.md)의 snapshot envelope로 저장/복원한다. 공통 소유권과 추상 인터페이스는 [스트림·실행기·코덱](../streams.md), [버퍼](../storage.md)를 따른다.
