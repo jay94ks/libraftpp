@@ -8,6 +8,8 @@ This document records progress and verification for the C++20 port of the entire
 
 ## Overall Status
 
+README guide (2026-11-04): added README.md/README.en.md covering introduction, build/install, optional modules, I/O composition, runnable examples, and API navigation. Checked thirty-five document pairs/786 links and seven matching README code blocks. Documentation-only changes skip product builds/tests and reuse existing results.
+
 RocksDB/SQLite storage modules (2026-11-04): pinned SDKs and required Tcl generation tools under deps and implemented all of `storage`, composable through `make_io` without UV. Verified eight related checks in static/shared Release and ASan/UBSan, forced-exit recovery/SQLite rollback, installed consumers, and disabling options. Also fixed existing duplicate node snapshots exposed by inline completion. DB calls block/completions run inline; scope, initial failures, and limits are recorded below.
 
 Earlier user-selected I/O composition unit (2026-11-04): implemented `storage`/`timer`/`make_io`, UV storage/timer, and Asio timer. Users combine transport and an optional snapshot codec. Verified seven core contracts, a UV-free Asio TCP cluster, real per-codec snapshot restart, thirteen ASan/UBSan checks by scope, and static/shared installed consumers. Existing `uv_io` remains; UV is the only built-in durable storage provider. Scope, initial failures, and reuse conditions are recorded in the unit below.
@@ -143,6 +145,21 @@ Allocation-failure injection exposed termination inside libstdc++ directory_iter
 Foundational components, the in-memory log, and snapshots are connected to the internal event-driven consensus core. In-memory cluster elections, replication, commits, membership, leadership transfer, partitions, and recovery are compared against C. Public callback node APIs and I/O and FSM interfaces are implemented and tested with a mock backend. RPC and disk-batch serialization and checksums are independently implemented with format comparisons and verification complete. Synchronous metadata, snapshot, and segment-file operations, stored-state recovery, a direct-I/O/KAIO writer, and a log-writing coordinator are also implemented. A test-only I/O adapter checks a single node's close/restart using actual disk storage. The snapshot/file coordinator and public `uv_io` now connect actual storage and timers to an abstract message transport. Concrete `tcp_transport` is connected to `uv_io` and nodes, allowing actual disk-and-TCP nodes. Basic tracing and buffer/object/core/native-container memory resources are connected. An independent public C++ virtual-time fixture provides memory I/O and cluster controls. Native examples, submit/disk benchmarks and kernel perf/trace are implemented. Current whole-API/compatibility decisions follow the final audit table below; actual kernel-measurement/device-execution limits remain separate.
 
 The original C implementation is preserved under `raft/` as the behavioral reference. `raftpp::raft` provides the original C library; `raftpp::raftpp` provides independently implemented C++ components. A successful C-target build or an enabled feature flag does not establish that the corresponding C++ layer is complete.
+
+### README Entry Guide (2026-11-04)
+
+Added root `README.md`/`README.en.md` with matching project introduction, mandatory core/eleven modules, minimal core build, SQLite/Tcl SDK preparation, user-selected `make_io` example, install/CMake consumption, UV counter execution, Release test commands, source layout, API/work-instruction links, and existing license identifier. Explained blocking/inline DB operations, serialized execution domains, loop lifetime through close, and QUIC connector responsibilities. Did not duplicate success/progress/test history in README/API documents.
+
+Reference scope covers root/deps CMake options/install/consumer rules, public composed_io/storage/SQLite APIs and ownership/callback contracts, existing composed-example CLI/targets, related paired API documents, and LICENSE. Actual edits affect only two READMEs, two root instruction document-pair inventories, two API module indexes' outdated optional-module count/DB composition text, and two progress records. Product/tests/build rules/SDKs/generated headers are unchanged.
+
+| Check | Run/skipped/unverified | Result or previous record | Change impact or reason for skipping |
+| --- | --- | --- | --- |
+| Document pairs/relative links | Run | Thirty-five total pairs/786 relative links without errors. `/tmp/raftpp-readme-validation.json` | Checked README pairs/counterpart links and relative targets throughout paired API/root documents |
+| README code/options/API correspondence | Run | Seven paired code blocks match; eleven module links per language. Same JSON report | Compared declarations/options/CLI/targets/paths against existing implementation. Not compilation/execution of the new documentation examples |
+| Document whitespace | Run | `git diff --check` passed | Only new README and edited documents/instructions/records |
+| Product builds/Release adapters/ASan-UBSan/installed consumers | Skipped — reused existing results | Relevant checks/limits from preceding `RocksDB/SQLite Durable Storage Modules` and `User-Selected I/O Composition` | Related implementation/tests/shared headers/generated code/build options/SDKs/tools/execution environment are unchanged. Preserved previous passes/initial failures without adding them to this task's pass counts |
+
+Ran `python3 /tmp/raftpp-check-readme.py` and `git diff --check`. Documentation-only changes skip new example execution/additional option-matrix checks. Existing native SDK/hardware/LSan limits remain in preceding records.
 
 ### RocksDB/SQLite Durable Storage Modules (2026-11-04)
 

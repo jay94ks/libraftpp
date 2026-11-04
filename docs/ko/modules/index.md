@@ -20,7 +20,7 @@
 
 ## 선택과 설치 소비
 
-일곱 `RAFTPP_MODULE_<NAME>` 옵션의 기본값은 OFF다. UV의 최초 기본값은 libuv 감지 결과에 따른다. 옵션은 라이브러리를 빌드할 때 선택한다. 비활성 모듈의 헤더와 타깃은 제공하지 않으며 소비자에서 기능 매크로를 재정의해 활성화할 수 없다.
+`RAFTPP_MODULE_<NAME>` 옵션의 기본값은 OFF다. UV의 최초 기본값은 libuv 감지 결과에 따른다. 옵션은 라이브러리를 빌드할 때 선택한다. 비활성 모듈의 헤더와 타깃은 제공하지 않으며 소비자에서 기능 매크로를 재정의해 활성화할 수 없다.
 
 ```cmake
 find_package(raftpp CONFIG REQUIRED COMPONENTS asio zstd)
@@ -39,4 +39,4 @@ target_link_libraries(app PRIVATE raftpp::asio raftpp::zstd)
 
 쓰기 성공은 각 SDK의 로컬 수락/완료이며 Raft commit이나 원격 애플리케이션 ACK가 아니다. 즉시 제출 실패 시 완료 콜백은 호출하지 않는다. 종료 후에도 수락된 작업과 native 정리가 끝날 때까지 실행 영역을 계속 구동한다. 세부 차이는 각 모듈 문서와 [공통 스트림 계약](../streams.md)을 따른다.
 
-`make_io(io_components)`로 저장소·타이머·network와 선택 snapshot codec을 조립해 노드에 전달할 수 있다. UV는 `uv_storage`·`uv_timer`, Asio는 `asio_timer`를 제공한다. 구체 조합은 [I/O 조립](../composition.md)을 따른다.
+`make_io(io_components)`로 저장소·타이머·network와 선택 snapshot codec을 조립해 노드에 전달할 수 있다. UV는 `uv_storage`·`uv_timer`, Asio는 `asio_timer`, RocksDB와 SQLite는 각각 `rocksdb_storage`·`sqlite_storage`를 제공한다. 구체 조합은 [I/O 조립](../composition.md)을 따른다.

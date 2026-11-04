@@ -33,7 +33,7 @@
 ## Documentation Languages and Counterparts
 
 - Maintain project-authored documentation in Korean and English only. Both versions must convey the same content; neither is a summary nor a separate set of requirements.
-- Preserve existing root filenames for Korean documents and use the `.en.md` suffix for English counterparts. Current pairs are `AGENTS.md` / `AGENTS.en.md`, `REWRITTEN.md` / `REWRITTEN.en.md`, and `LICENSE.md` / `LICENSE.en.md`.
+- Preserve existing root filenames for Korean documents and use the `.en.md` suffix for English counterparts. Current pairs are `README.md` / `README.en.md`, `AGENTS.md` / `AGENTS.en.md`, `REWRITTEN.md` / `REWRITTEN.en.md`, and `LICENSE.md` / `LICENSE.en.md`.
 - Place API documentation under `docs/ko/` and `docs/en/`, using matching relative paths and filenames. Both trees follow the API-documentation-only rule.
 - Add, modify, or remove both language versions in the same task. Keep API signatures, behavior, errors, ownership, feature options, examples, progress status, and verification results consistent.
 - Add relative links between counterparts. Do not translate code identifiers, paths, option names, or actual error messages into different values.

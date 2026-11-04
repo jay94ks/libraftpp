@@ -20,7 +20,7 @@ All types use namespace `raftpp`. Core is mandatory; optional modules depend on 
 
 ## Selection and Installed Consumption
 
-The seven `RAFTPP_MODULE_<NAME>` options default OFF. UV initially defaults according to libuv detection. Select options when building the library. Disabled modules provide no headers/targets; consumers cannot activate them by redefining feature macros.
+`RAFTPP_MODULE_<NAME>` options default OFF. UV initially defaults according to libuv detection. Select options when building the library. Disabled modules provide no headers/targets; consumers cannot activate them by redefining feature macros.
 
 ```cmake
 find_package(raftpp CONFIG REQUIRED COMPONENTS asio zstd)
@@ -39,4 +39,4 @@ Streams and I/O callbacks belonging to one node/transport must share a serialize
 
 Write success means the SDK's local acceptance/completion, not Raft commit or remote application acknowledgement. Immediate submission failure invokes no completion. Keep the execution domain running after close until accepted work and native cleanup finish. See each module and the [common stream contract](../streams.md) for differences.
 
-Use `make_io(io_components)` to assemble storage/timer/network and an optional snapshot codec into a node backend. UV provides `uv_storage`/`uv_timer`; Asio provides `asio_timer`. See [I/O composition](../composition.md) for concrete combinations.
+Use `make_io(io_components)` to assemble storage/timer/network and an optional snapshot codec into a node backend. UV provides `uv_storage`/`uv_timer`; Asio provides `asio_timer`; RocksDB and SQLite provide `rocksdb_storage` and `sqlite_storage` respectively. See [I/O composition](../composition.md) for concrete combinations.
