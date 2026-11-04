@@ -27,7 +27,7 @@ if(NOT RAFTPP_PACKAGE_NEEDS_PKGCONFIG)
 endif()
 if(RAFTPP_DEPENDENCY_PREFIX)
     set(prefixes)
-    foreach(module IN ITEMS asyncpp asio mvfst msquic lz4 zstd zlib)
+    foreach(module IN ITEMS asyncpp asio mvfst msquic lz4 zstd zlib rocksdb sqlite)
         list(APPEND prefixes "${RAFTPP_DEPENDENCY_PREFIX}/${module}")
     endforeach()
     file(GLOB mvfst_prefixes LIST_DIRECTORIES TRUE "${RAFTPP_DEPENDENCY_PREFIX}/*")
@@ -58,7 +58,7 @@ run("${CMAKE_CTEST_COMMAND}" --test-dir "${work}/consumer" --build-config "${RAF
 
 # Prove selective consumption does not require unrelated active SDKs.
 set(component_checks core)
-foreach(module IN ITEMS asio mvfst)
+foreach(module IN ITEMS asio mvfst rocksdb sqlite)
     if(EXISTS "${work}/relocated/include/raftpp/${module}/${module}.hpp")
         list(APPEND component_checks "${module}")
     endif()

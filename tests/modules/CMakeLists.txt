@@ -3,11 +3,22 @@ if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE STREQUAL "Release")
     message(STATUS "raftpp: SDK module checks require Release; not built in this configuration")
     return()
 endif()
-foreach(module IN ITEMS asyncpp asio mvfst msquic lz4 zstd zlib)
+foreach(module IN ITEMS asyncpp asio mvfst msquic lz4 zstd zlib rocksdb sqlite)
     if(TARGET raftpp::${module} AND (NOT DEFINED raftpp_RESOLVED_COMPONENTS
        OR module IN_LIST raftpp_RESOLVED_COMPONENTS))
         add_executable(raftpp_module_${module}_check ${module}.cpp)
         target_link_libraries(raftpp_module_${module}_check PRIVATE raftpp::${module})
+        if(module STREQUAL "rocksdb")
+            if(NOT TARGET RocksDB::rocksdb)
+                find_package(RocksDB 11.13.2 CONFIG REQUIRED)
+            endif()
+            target_link_libraries(raftpp_module_${module}_check PRIVATE RocksDB::rocksdb)
+        elseif(module STREQUAL "sqlite")
+            if(NOT TARGET SQLite::SQLite3)
+                find_package(SQLite3 3.24 REQUIRED)
+            endif()
+            target_link_libraries(raftpp_module_${module}_check PRIVATE SQLite::SQLite3)
+        endif()
         set_target_properties(raftpp_module_${module}_check PROPERTIES CXX_EXTENSIONS OFF
             EXCLUDE_FROM_DEFAULT_BUILD_DEBUG TRUE
             EXCLUDE_FROM_DEFAULT_BUILD_RELWITHDEBINFO TRUE

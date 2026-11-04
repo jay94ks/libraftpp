@@ -1,0 +1,7 @@
+include("${CMAKE_CURRENT_LIST_DIR}/../../cmake/dependency-module.cmake")
+raftpp_add_dependency_module(rocksdb)
+find_package(RocksDB 11.13.2 CONFIG REQUIRED)
+target_link_libraries(raftpp_rocksdb PRIVATE RocksDB::rocksdb)
+target_include_directories(raftpp_rocksdb PRIVATE "${PROJECT_SOURCE_DIR}/modules/core/privates")
+raftpp_dependency_package("find_dependency(RocksDB 11.13.2 CONFIG)")
+raftpp_finish_dependency_module(rocksdb)

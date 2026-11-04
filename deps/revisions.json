@@ -96,5 +96,17 @@
     "required_by": [
       "mvfst"
     ]
+  },
+  "rocksdb": {
+    "url": "https://github.com/facebook/rocksdb.git",
+    "revision": "17b624b5c0d41bd42db5cf88aa867f3b26eaf1fa"
+  },
+  "sqlite": {
+    "url": "https://github.com/sqlite/sqlite.git",
+    "revision": "57520227c95396ce39ba6ecaac8d475b78dd3964"
+  },
+  "tcl": {
+    "url": "https://github.com/tcltk/tcl.git",
+    "revision": "433df5b20a8bd6957c3bda981c83d65202eb7de7"
   }
 }

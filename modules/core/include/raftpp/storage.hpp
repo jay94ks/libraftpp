@@ -4,6 +4,12 @@
 #include <raftpp/io.hpp>
 
 namespace raftpp {
+    struct storage_limits {
+        size_t max_entry_size = 8 * 1024 * 1024;
+        size_t max_snapshot_size = 16 * 1024 * 1024;
+        size_t max_entries = 262144;
+    };
+
     // All calls/completions use the composed I/O's serialized execution domain.
     // Accepted requests retain their data and drain before close completes.
     // Snapshot payloads are opaque bytes; their encoding belongs to the composer.

@@ -44,7 +44,7 @@ function(raftpp_finish_dependency_module name)
     endif()
     if(RAFTPP_INSTALL)
         # Preserve upstream licenses even when vendoring header-only libraries.
-        foreach(file LICENSE LICENSE.md LICENSE.txt LICENSE_1_0.txt NOTICE NOTICE.txt COPYING COPYING.LESSER COPYING.LIB lib/LICENSE lib/COPYING)
+        foreach(file LICENSE LICENSE.Apache LICENSE.leveldb license.terms LICENSE.md LICENSE.txt LICENSE_1_0.txt NOTICE NOTICE.txt COPYING COPYING.LESSER COPYING.LIB lib/LICENSE lib/COPYING)
             if(EXISTS "${RAFTPP_DEPS_DIR}/${name}/${file}")
                 # Preserve subdirectory components to avoid two COPYING collisions.
                 get_filename_component(directory "${file}" DIRECTORY)

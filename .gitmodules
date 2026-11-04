@@ -49,3 +49,12 @@
 [submodule "deps/libsodium"]
 	path = deps/libsodium
 	url = https://github.com/jedisct1/libsodium.git
+[submodule "deps/rocksdb"]
+	path = deps/rocksdb
+	url = https://github.com/facebook/rocksdb.git
+[submodule "deps/sqlite"]
+	path = deps/sqlite
+	url = https://github.com/sqlite/sqlite.git
+[submodule "deps/tcl"]
+	path = deps/tcl
+	url = https://github.com/tcltk/tcl.git

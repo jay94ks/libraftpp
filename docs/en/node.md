@@ -167,7 +167,7 @@ The election setter resamples the follower/candidate deadline without resetting 
 | `truncate(log_index)` | Remove the log suffix starting at that index. Order pending writes and subsequent appends correctly. |
 | `append(log_index, shared<const entry_batch>, completion)` | Record entries starting at the given index, completing after durable storage. |
 | `send(shared<const message>, completion)` | Retain the message and payload until transport completes. |
-| `snapshot_put(unsigned trailing, shared<const snapshot>, completion)` | Store a snapshot. trailing 0 denotes installation and replaces the previous log. |
+| `snapshot_put(unsigned trailing, shared<const snapshot>, completion)` | Store a snapshot. trailing counts covered log entries to retain; 0 requests none and is also used for installation. Replace conflicting history; a backend may retain a matching suffix. |
 | `snapshot_get(snapshot_callback)` | Return the stable snapshot by `optional<snapshot>` value. The callback type is `function<void(error_code, optional<snapshot>)>`. |
 | `time() const noexcept` | Monotonically increasing time in ms. |
 | `random(uint32_t minimum, uint32_t maximum) noexcept` | Random value within inclusive bounds. |
@@ -203,3 +203,5 @@ FSM methods execute synchronously on the node's event loop. `apply` applies comm
 `snapshot` freezes state at that point as read-only buffers. Each successful preparation has exactly one matching `snapshot_finalize`, regardless of storage success, failure, or cancellation. Failed preparation itself does not count as successful work requiring finalization. The optional second phase, `snapshot_async`, also returns synchronously; its default implementation succeeds. The default `snapshot_finalize` clears the buffers. A failed `snapshot_async` or immediate snapshot-submission failure finalizes prepared state and waits for another snapshot opportunity. The FSM must not modify or release the buffers before storage completes.
 
 If local snapshot metadata/request preparation or `snapshot` throws `bad_alloc` or `length_error`, the node skips that attempt and retries on a later event. Already committed/applied commands and their successful callbacks are preserved; these errors alone do not close the node. Failure to prepare submission after a successful freeze calls `snapshot_finalize`. Other first-phase FSM exceptions and completion errors from already accepted snapshot storage can close the node.
+
+After successful local snapshot storage, the node does not submit the same commit index again while its completion event awaits core processing. Immediate submission failure may retry at a later snapshot opportunity. Inline completion follows the same contract.

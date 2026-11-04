@@ -15,8 +15,10 @@
 | [`RAFTPP_MODULE_LZ4`](modules/lz4.md) | `raftpp::lz4` | `<raftpp/lz4/lz4.hpp>` | `lz4_codec : compression_codec`, liblz4 ≥ 1.7.1 |
 | [`RAFTPP_MODULE_ZSTD`](modules/zstd.md) | `raftpp::zstd` | `<raftpp/zstd/zstd.hpp>` | `zstd_codec : compression_codec` |
 | [`RAFTPP_MODULE_ZLIB`](modules/zlib.md) | `raftpp::zlib` | `<raftpp/zlib/zlib.hpp>` | `zlib_codec : compression_codec` |
+| [`RAFTPP_MODULE_ROCKSDB`](modules/rocksdb.md) | `raftpp::rocksdb` | `<raftpp/rocksdb/rocksdb.hpp>` | `rocksdb_storage : storage` |
+| [`RAFTPP_MODULE_SQLITE`](modules/sqlite.md) | `raftpp::sqlite` | `<raftpp/sqlite/sqlite.hpp>` | `sqlite_storage : storage` |
 
-These modules contain concrete implementations of core abstractions, linked with their native SDKs. [Streams, framing, executors and codecs](streams.md) describe their API contracts. `uv_stream` also implements `byte_stream`; `framed_transport` implements the core `transport` over any compatible established peer streams. Enabling a module does not select a node backend automatically. [UV](uv_io.md) continues to provide disk persistence and timers; these optional stream adapters do not provide separate durable `io` implementations. QUIC connection establishment, certificates, authentication and reconnect policy remain with the application connector. All public asynchronous APIs use callbacks.
+These modules contain concrete implementations of core abstractions, linked with their native SDKs. [Streams, framing, executors and codecs](streams.md) describe their API contracts. `uv_stream` also implements `byte_stream`; `framed_transport` implements the core `transport` over any compatible established peer streams. Enabling a module does not select a node backend automatically. [UV](uv_io.md) provides disk persistence and timers; [RocksDB](modules/rocksdb.md)/[SQLite](modules/sqlite.md) provide composable DB stores. Stream adapters themselves are not durable `io` implementations. QUIC connection establishment, certificates, authentication and reconnect policy remain with the application connector. All public asynchronous APIs use callbacks.
 
 `raftpp::raftpp` and `<raftpp.hpp>` collect active modules. To use a particular SDK, link its module target and include its header. Core is always linked alongside it. `raftpp::features::modules::<name>` and generated `RAFTPP_MODULE_<NAME>` macros indicate SDK module activation at library build time; consumer component selection does not change them. Disabled modules expose no headers, targets, or dependencies.
 
@@ -38,6 +40,24 @@ cmake --build build --parallel 2
 `RAFTPP_DEPENDENCIES` selects SDK preparation; `RAFTPP_MODULE_<NAME>` selects raftpp modules. List only needed SDKs or build `--target raftpp_dep_<name>`. Each SDK uses its own CMake process/build directory and `<prefix>/<name>` installation. Configure preparation with `RAFTPP_DEPS_PREFIX`, `RAFTPP_DEPS_JOBS`, `RAFTPP_DEPS_BUILD_TYPE` (default Release), and `RAFTPP_DEPS_SHARED`. If the same SDK is already prepared under `<prefix>/<name>`, list its name in semicolon-separated `RAFTPP_DEPS_PREBUILT` to skip rebuilding. Explicit reuse requires matching commits, build options, tools, and installed files. Upstream tests, examples, benchmarks, and documentation builds are disabled. Because zlib's CMake changes an original header, it uses a separate source copy within the build directory.
 
 `RAFTPP_DEPENDENCY_PREFIX` is the SDK installation root. Existing SDK installations can also be supplied through `CMAKE_PREFIX_PATH`, `PKG_CONFIG_PATH`, or individual package `_DIR` settings. Asio/asyncpp use the needed headers from the default `RAFTPP_DEPS_DIR` checkouts. Without those checkouts, installed Asio headers or an asyncpp package are located. Binary SDK packages are resolved at configure time; a missing package fails configuration for the selected module. Configuration does not automatically download or build SDKs.
+
+## Preparing Database SDKs
+
+RocksDB/SQLite provide UV-free `storage` implementations. RocksDB preparation disables optional compression/gflags/liburing/tools/tests; platform thread support is the required external runtime component. SQLite canonical-source amalgamation generation needs Tcl, so selecting `sqlite` also prepares `tcl`. Tcl is a build tool, not a raftpp/SQLite runtime dependency. SQLite preparation builds/installs only the DB library, excluding CLI/Tcl bindings/extensions/math functions/readline/docs/upstream tests.
+
+```sh
+git submodule update --init deps/rocksdb deps/sqlite deps/tcl
+cmake -S deps -B build/db-deps '-DRAFTPP_DEPENDENCIES=rocksdb;sqlite' \
+  -DRAFTPP_DEPS_SHARED=OFF
+cmake --build build/db-deps --parallel 2
+cmake -S . -B build/db -DCMAKE_BUILD_TYPE=Release \
+  -DRAFTPP_WITH_UV=OFF -DRAFTPP_WITH_LZ4=OFF \
+  -DRAFTPP_DEPENDENCY_PREFIX="$PWD/build/db-deps/prefix" \
+  -DRAFTPP_MODULE_ROCKSDB=ON -DRAFTPP_MODULE_SQLITE=ON
+cmake --build build/db --parallel 2
+```
+
+This source-preparation path requires native POSIX tools. Supply installed SDKs for other environments/cross compilation. Prepared static SDK libraries use PIC and can link into either static or shared raftpp modules. See [RocksDB](modules/rocksdb.md)/[SQLite](modules/sqlite.md) for blocking/inline DB-call and completion contracts.
 
 ## QUIC SDK Dependencies
 

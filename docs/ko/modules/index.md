@@ -15,6 +15,8 @@
 | [lz4](lz4.md) | `raftpp::lz4` | `RAFTPP_MODULE_LZ4` | `<raftpp/lz4/lz4.hpp>` | LZ4 프레임 코덱 |
 | [zstd](zstd.md) | `raftpp::zstd` | `RAFTPP_MODULE_ZSTD` | `<raftpp/zstd/zstd.hpp>` | Zstandard 프레임 코덱 |
 | [zlib](zlib.md) | `raftpp::zlib` | `RAFTPP_MODULE_ZLIB` | `<raftpp/zlib/zlib.hpp>` | zlib 형식의 DEFLATE 코덱 |
+| [RocksDB](rocksdb.md) | `raftpp::rocksdb` | `RAFTPP_MODULE_ROCKSDB` | `<raftpp/rocksdb/rocksdb.hpp>` | `rocksdb_storage : storage` |
+| [SQLite](sqlite.md) | `raftpp::sqlite` | `RAFTPP_MODULE_SQLITE` | `<raftpp/sqlite/sqlite.hpp>` | `sqlite_storage : storage` |
 
 ## 선택과 설치 소비
 

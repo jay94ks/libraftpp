@@ -13,6 +13,8 @@
 #cmakedefine01 RAFTPP_MODULE_LZ4
 #cmakedefine01 RAFTPP_MODULE_ZSTD
 #cmakedefine01 RAFTPP_MODULE_ZLIB
+#cmakedefine01 RAFTPP_MODULE_ROCKSDB
+#cmakedefine01 RAFTPP_MODULE_SQLITE
 
 namespace raftpp::features {
     inline constexpr bool uv = RAFTPP_WITH_UV;
@@ -29,6 +31,8 @@ namespace raftpp::features::modules {
     inline constexpr bool lz4 = RAFTPP_MODULE_LZ4;
     inline constexpr bool zstd = RAFTPP_MODULE_ZSTD;
     inline constexpr bool zlib = RAFTPP_MODULE_ZLIB;
+    inline constexpr bool rocksdb = RAFTPP_MODULE_ROCKSDB;
+    inline constexpr bool sqlite = RAFTPP_MODULE_SQLITE;
 }
 
 #endif // RAFTPP_CONFIG_HPP

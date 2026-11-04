@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 
 project(raftpp LANGUAGES CXX)
 
-set(RAFTPP_DEPENDENCY_MODULES asyncpp asio mvfst msquic lz4 zstd zlib)
+set(RAFTPP_DEPENDENCY_MODULES asyncpp asio mvfst msquic lz4 zstd zlib rocksdb sqlite)
 set(RAFTPP_DEPENDENCY_PREFIX "" CACHE PATH "Prefix containing independently built SDK directories")
 if(RAFTPP_DEPENDENCY_PREFIX)
     foreach(module IN LISTS RAFTPP_DEPENDENCY_MODULES)

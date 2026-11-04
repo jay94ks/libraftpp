@@ -35,4 +35,12 @@
 #include <raftpp/zlib/zlib.hpp>
 #endif
 
+#if RAFTPP_MODULE_ROCKSDB
+#include <raftpp/rocksdb/rocksdb.hpp>
+#endif
+
+#if RAFTPP_MODULE_SQLITE
+#include <raftpp/sqlite/sqlite.hpp>
+#endif
+
 #endif // RAFTPP_HPP

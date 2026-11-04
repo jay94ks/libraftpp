@@ -15,6 +15,8 @@ All types use namespace `raftpp`. Core is mandatory; optional modules depend on 
 | [lz4](lz4.md) | `raftpp::lz4` | `RAFTPP_MODULE_LZ4` | `<raftpp/lz4/lz4.hpp>` | LZ4 frame codec |
 | [zstd](zstd.md) | `raftpp::zstd` | `RAFTPP_MODULE_ZSTD` | `<raftpp/zstd/zstd.hpp>` | Zstandard frame codec |
 | [zlib](zlib.md) | `raftpp::zlib` | `RAFTPP_MODULE_ZLIB` | `<raftpp/zlib/zlib.hpp>` | zlib-wrapped DEFLATE codec |
+| [RocksDB](rocksdb.md) | `raftpp::rocksdb` | `RAFTPP_MODULE_ROCKSDB` | `<raftpp/rocksdb/rocksdb.hpp>` | `rocksdb_storage : storage` |
+| [SQLite](sqlite.md) | `raftpp::sqlite` | `RAFTPP_MODULE_SQLITE` | `<raftpp/sqlite/sqlite.hpp>` | `sqlite_storage : storage` |
 
 ## Selection and Installed Consumption
 

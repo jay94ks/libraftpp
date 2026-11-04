@@ -58,6 +58,7 @@ target_link_libraries(app PRIVATE raftpp::raftpp)
 | `RAFTPP_BUILD_EXAMPLES` | 기본 OFF. UV가 필요하며 테스트·fixture·LZ4와 독립적이다. |
 | `RAFTPP_BUILD_BENCHMARKS` | 기본 OFF. UV가 필요하며 예제·테스트·fixture·LZ4와 독립적이다. |
 | `BUILD_SHARED_LIBS` | 별도 설정이 없으면 정적이다. ON이면 공유 라이브러리를 빌드한다. |
+| `RAFTPP_MODULE_ROCKSDB`, `RAFTPP_MODULE_SQLITE` | 기본 OFF. [DB 저장소 모듈](dependencies.md)의 SDK와 독립 `storage` 구현을 활성화한다. UV가 필요하지 않다. |
 | `RAFTPP_INSTALL` | 최상위 기본 ON, 하위 프로젝트 기본 OFF. 설치 규칙과 CMake package를 생성한다. |
 
 UV가 켜진 설치 패키지는 소비 환경에서 PkgConfig로 libuv를 찾는다. 정적 LZ4 구성은 liblz4도 다시 찾고, 정적 backtrace 구성은 소비 컴파일러의 검색 경로에서 GNU libbacktrace 라이브러리를 찾는다. 생산자의 의존성 절대 경로를 복사하지 않는다. 공유 라이브러리의 비공개 LZ4/backtrace 링크 조건은 소비자 개발 헤더·PkgConfig 요구로 노출하지 않는다. 외부 공유 라이브러리의 실행 시 검색은 플랫폼 로더 조건을 따른다.

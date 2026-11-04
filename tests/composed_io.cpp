@@ -379,6 +379,8 @@ namespace {
         auto fsm = std::make_shared<machine>();
         node_options options;
         options.tracing = tracer::noop();
+        options.snapshot_threshold = 1;
+        options.snapshot_trailing = 0;
         node member{1, "local", backend, fsm, options};
         check(!member.bootstrap(members()) && !member.start() &&
                   member.state() == node_state::leader,

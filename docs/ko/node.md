@@ -167,7 +167,7 @@ election setter는 시작 시각을 초기화하지 않고 follower/candidate �
 | `truncate(log_index)` | 해당 인덱스부터 로그 접미사를 제거한다. 후속 append와 진행 중인 쓰기의 순서를 보장한다. |
 | `append(log_index, shared<const entry_batch>, completion)` | 지정 인덱스부터 엔트리를 기록하고 안정적인 저장 이후 완료한다. |
 | `send(shared<const message>, completion)` | 메시지와 payload를 전송 완료까지 유지한다. |
-| `snapshot_put(unsigned trailing, shared<const snapshot>, completion)` | 스냅샷을 저장한다. trailing 0은 설치이며 기존 로그를 대체한다. |
+| `snapshot_put(unsigned trailing, shared<const snapshot>, completion)` | 스냅샷을 저장한다. trailing은 snapshot이 덮는 로그의 보존 수이며 0은 보존을 요구하지 않는다. 설치에도 0을 사용한다. 충돌하는 이력은 교체하며 저장소에 따라 일치하는 suffix는 유지할 수 있다. |
 | `snapshot_get(snapshot_callback)` | 안정된 스냅샷을 `optional<snapshot>` 값으로 반환한다. 콜백 타입은 `function<void(error_code, optional<snapshot>)>`다. |
 | `time() const noexcept` | 단조 증가하는 ms 시간. |
 | `random(uint32_t minimum, uint32_t maximum) noexcept` | 양 끝을 포함하는 범위의 난수. |
@@ -203,3 +203,5 @@ FSM 메서드는 노드의 이벤트 루프에서 동기적으로 실행된다. 
 `snapshot`은 그 시점의 상태를 읽기 전용 버퍼들로 고정한다. 성공한 준비 작업에는 저장 성공·실패·취소와 무관하게 `snapshot_finalize`가 정확히 한 번 대응한다. 준비 자체의 실패는 정리 대상인 성공으로 취급하지 않는다. 선택적인 두 번째 단계 `snapshot_async`도 동기 반환이며 기본 구현은 성공이다. 기본 `snapshot_finalize`는 버퍼를 비운다. `snapshot_async` 또는 즉시 스냅샷 제출 실패 시 준비한 상태를 정리하고 다음 생성 기회를 기다린다. 저장 완료 전에 FSM이 버퍼를 변경하거나 해제해서는 안 된다.
 
 로컬 스냅샷의 메타데이터·요청 준비나 `snapshot`에서 `bad_alloc` 또는 `length_error`가 발생하면 해당 생성 시도를 건너뛰고 이후 이벤트에서 다시 시도한다. 이미 commit·적용된 명령과 성공 콜백은 유지하며 이 오류만으로 노드를 종료하지 않는다. 고정에 성공한 이후 제출 준비가 실패하면 `snapshot_finalize`로 정리한다. 그 밖의 첫 단계 FSM 예외와 이미 수락된 스냅샷 저장의 완료 오류는 노드를 종료할 수 있다.
+
+로컬 snapshot 저장이 성공하면 그 완료 이벤트가 코어에 반영되기 전에도 동일 commit index의 저장을 중복 제출하지 않는다. 즉시 제출 실패는 이후 snapshot 기회에 다시 시도할 수 있다. 인라인 완료도 같은 계약을 따른다.

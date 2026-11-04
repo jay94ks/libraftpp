@@ -58,7 +58,7 @@ raftpp::shared<raftpp::io> assemble(
 
 동기 메서드와 비동기 제출은 `error_code`를 반환한다. 즉시 실패에는 완료 콜백이 없고 수락한 작업은 한 번 완료하며 인라인 완료도 허용한다. 저장소는 snapshot payload를 소유한 바이트로 취급하며 조립기의 프레임을 변환하지 않아야 한다. `uv_storage`는 이 프레임을 그대로 전달하면서 기존 LZ4 snapshot 읽기 계약도 유지한다.
 
-내장 영속 구현은 [UV의 `uv_storage`](modules/uv.md)다. UV 없는 저장소를 사용하려면 별도의 `storage` 구현을 제공한다. Asio·QUIC 스트림 어댑터 자체는 파일 영속화를 제공하지 않는다.
+내장 영속 구현은 [UV의 `uv_storage`](modules/uv.md), [RocksDB의 `rocksdb_storage`](modules/rocksdb.md), [SQLite의 `sqlite_storage`](modules/sqlite.md)다. RocksDB/SQLite는 UV 없이 선택할 수 있고 `storage_limits`로 엔트리/snapshot 크기·엔트리 수 한도를 지정한다. DB 호출·커밋은 블로킹하며 완료는 인라인이다. 다른 저장소도 `storage`를 구현해 조립할 수 있다. Asio·QUIC 스트림 어댑터 자체는 파일 영속화를 제공하지 않는다.
 
 UV 저장소의 로그 엔트리 payload 길이는 기존 디스크 형식대로 8바이트의 배수여야 한다. 조립기는 명령에 padding을 추가하지 않는다. 스냅샷 payload에는 이 정렬 조건을 적용하지 않는다.
 

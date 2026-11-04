@@ -15,8 +15,10 @@
 | [`RAFTPP_MODULE_LZ4`](modules/lz4.md) | `raftpp::lz4` | `<raftpp/lz4/lz4.hpp>` | `lz4_codec : compression_codec`, liblz4 ≥ 1.7.1 |
 | [`RAFTPP_MODULE_ZSTD`](modules/zstd.md) | `raftpp::zstd` | `<raftpp/zstd/zstd.hpp>` | `zstd_codec : compression_codec` |
 | [`RAFTPP_MODULE_ZLIB`](modules/zlib.md) | `raftpp::zlib` | `<raftpp/zlib/zlib.hpp>` | `zlib_codec : compression_codec` |
+| [`RAFTPP_MODULE_ROCKSDB`](modules/rocksdb.md) | `raftpp::rocksdb` | `<raftpp/rocksdb/rocksdb.hpp>` | `rocksdb_storage : storage` |
+| [`RAFTPP_MODULE_SQLITE`](modules/sqlite.md) | `raftpp::sqlite` | `<raftpp/sqlite/sqlite.hpp>` | `sqlite_storage : storage` |
 
-이 모듈들은 네이티브 SDK를 이용하는 core 추상 인터페이스의 실제 구현체를 포함한다. [스트림·framing·실행기·코덱](streams.md)에서 API 계약을 설명한다. `uv_stream`도 `byte_stream`을 구현하며, `framed_transport`는 호환되는 연결된 peer 스트림 위에서 core의 `transport`를 구현한다. 모듈 활성화만으로 노드의 백엔드가 자동 선택되지는 않는다. 디스크 영속화와 타이머는 계속 [UV](uv_io.md)가 제공하며 선택 스트림 어댑터가 별도의 영속 `io`를 제공하지는 않는다. QUIC 연결 수립·인증서·인증·재접속 정책은 애플리케이션 connector가 담당한다. 공개 비동기 API는 콜백을 사용한다.
+이 모듈들은 네이티브 SDK를 이용하는 core 추상 인터페이스의 실제 구현체를 포함한다. [스트림·framing·실행기·코덱](streams.md)에서 API 계약을 설명한다. `uv_stream`도 `byte_stream`을 구현하며, `framed_transport`는 호환되는 연결된 peer 스트림 위에서 core의 `transport`를 구현한다. 모듈 활성화만으로 노드의 백엔드가 자동 선택되지는 않는다. [UV](uv_io.md)는 디스크 영속화와 타이머를, [RocksDB](modules/rocksdb.md)·[SQLite](modules/sqlite.md)는 조립용 DB 저장소를 제공한다. 선택 스트림 어댑터 자체는 영속 `io`가 아니다. QUIC 연결 수립·인증서·인증·재접속 정책은 애플리케이션 connector가 담당한다. 공개 비동기 API는 콜백을 사용한다.
 
 `raftpp::raftpp`와 `<raftpp.hpp>`는 활성 모듈을 모은다. 특정 SDK만 쓰려면 그 모듈 타깃에 연결하고 해당 헤더를 포함한다. core는 항상 함께 연결된다. `raftpp::features::modules::<name>`과 생성 `RAFTPP_MODULE_<NAME>` 매크로는 SDK 모듈의 빌드 당시 활성 상태를 나타내며 소비자의 컴포넌트 부분 선택으로 바뀌지 않는다. 비활성 모듈의 헤더·타깃·의존성은 노출되지 않는다.
 
@@ -38,6 +40,24 @@ cmake --build build --parallel 2
 `RAFTPP_DEPENDENCIES`는 SDK 준비 목록이고 `RAFTPP_MODULE_<NAME>`은 raftpp 선택 목록이다. 필요한 SDK만 목록에 넣거나 `--target raftpp_dep_<name>`으로 빌드한다. 각 SDK는 별도 CMake 프로세스/빌드 디렉터리와 `<prefix>/<name>` 설치 경로를 사용한다. `RAFTPP_DEPS_PREFIX`, `RAFTPP_DEPS_JOBS`, `RAFTPP_DEPS_BUILD_TYPE`(기본 Release), `RAFTPP_DEPS_SHARED`로 준비 빌드를 설정한다. 동일 SDK를 이미 `<prefix>/<name>`에 준비했다면 `RAFTPP_DEPS_PREBUILT`에 해당 이름을 세미콜론 목록으로 지정해 재빌드를 생략할 수 있다. 이 명시적 재사용은 같은 커밋·빌드 옵션·도구와 설치 파일을 사용하는 경우에만 지정한다. 상류 테스트·예제·벤치마크·문서 빌드는 사용하지 않는다. zlib은 CMake가 원본 헤더를 변경하므로 빌드 디렉터리의 별도 소스 복사본을 사용한다.
 
 `RAFTPP_DEPENDENCY_PREFIX`는 SDK 설치 루트다. 기존 설치 SDK를 쓸 때는 `CMAKE_PREFIX_PATH`, `PKG_CONFIG_PATH` 또는 각 package의 `_DIR` 설정을 사용할 수도 있다. Asio/asyncpp는 기본 `RAFTPP_DEPS_DIR` 체크아웃의 필요한 헤더를 사용한다. 체크아웃이 없으면 설치된 Asio 헤더 또는 asyncpp package를 찾는다. 바이너리 SDK는 해당 package를 구성 시 찾으며, 없으면 선택된 모듈의 configure가 실패한다. configure에서 자동으로 네트워크 다운로드나 SDK 빌드를 시작하지 않는다.
+
+## DB SDK 준비
+
+RocksDB/SQLite는 UV 없는 `storage` 구현을 제공한다. RocksDB 준비는 선택 압축·gflags·liburing·도구·테스트를 끈다. 필요한 외부 런타임 구성 요소는 플랫폼 thread 지원이다. SQLite canonical 소스의 amalgamation 생성에는 Tcl이 필요해 `sqlite`를 선택하면 `tcl`도 자동 준비한다. Tcl은 빌드 도구이며 raftpp/SQLite 런타임 의존성이 아니다. SQLite 준비는 DB 라이브러리만 빌드·설치하고 CLI·Tcl 바인딩·확장/수학 함수·readline·문서·상류 테스트를 제외한다.
+
+```sh
+git submodule update --init deps/rocksdb deps/sqlite deps/tcl
+cmake -S deps -B build/db-deps '-DRAFTPP_DEPENDENCIES=rocksdb;sqlite' \
+  -DRAFTPP_DEPS_SHARED=OFF
+cmake --build build/db-deps --parallel 2
+cmake -S . -B build/db -DCMAKE_BUILD_TYPE=Release \
+  -DRAFTPP_WITH_UV=OFF -DRAFTPP_WITH_LZ4=OFF \
+  -DRAFTPP_DEPENDENCY_PREFIX="$PWD/build/db-deps/prefix" \
+  -DRAFTPP_MODULE_ROCKSDB=ON -DRAFTPP_MODULE_SQLITE=ON
+cmake --build build/db --parallel 2
+```
+
+이 소스 준비 경로는 native POSIX 도구를 요구한다. 다른 환경/교차 컴파일에서는 설치된 SDK를 제공한다. 준비 SDK 정적 라이브러리는 PIC로 빌드하므로 정적/공유 raftpp 모듈 모두에 사용할 수 있다. DB 메서드와 완료의 블로킹/인라인 계약은 [RocksDB](modules/rocksdb.md)·[SQLite](modules/sqlite.md)를 따른다.
 
 ## QUIC SDK의 의존성
 

@@ -44,6 +44,7 @@ namespace raftpp::detail {
         bool starting = false, running = false, handling = false, draining = false, closing = false,
              closed = false, backend_closed = false;
         bool taking_snapshot = false;
+        log_index locally_stored_snapshot_index = 0;
         error_code failure;
         error_info failure_details, io_failure;
         resource_list<shared<request>> requests;
@@ -333,6 +334,7 @@ namespace raftpp::detail {
         void take_snapshot() {
             if (closing || taking_snapshot || core.snapshot_installing ||
                 applied < core.commit_index || core.commit_index <= core.trail.snapshot_index() ||
+                core.commit_index <= locally_stored_snapshot_index ||
                 core.commit_index - core.trail.snapshot_index() < options.snapshot_threshold ||
                 core.cache.term_of(core.commit_index) == 0)
                 return;
@@ -382,6 +384,10 @@ namespace raftpp::detail {
                                 fail(completed, "io.snapshot_put local");
                                 return;
                             }
+                            // The acknowledgement can precede its queued snapshot event.
+                            // Do not submit that same committed state a second time.
+                            locally_stored_snapshot_index =
+                                std::max(locally_stored_snapshot_index, job->value->index);
                             if (!core.snapshot_installing)
                                 enqueue(std::move(job->event));
                             auto pending = std::exchange(pending_install, {});

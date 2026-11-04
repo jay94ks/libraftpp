@@ -8,7 +8,9 @@
 
 ## 전체 상태
 
-사용자 선택형 I/O 조립(2026-11-04): `storage`·`timer`·`make_io`와 UV 저장소/타이머·Asio 타이머를 구현했다. 사용자가 transport와 선택 snapshot codec을 조합한다. core 계약 7개, UV 없는 Asio TCP 클러스터, 실제 codec별 snapshot 재시작, ASan/UBSan 13개 범위와 정적/공유 설치 소비자를 검증했다. 기존 `uv_io`는 유지하며 내장 영속 저장소는 UV만 제공한다. 상세 범위·최초 실패·재사용 조건은 아래 단위에 기록했다.
+RocksDB/SQLite 저장소 모듈(2026-11-04): SDK와 필수 생성 도구 Tcl을 deps에 고정하고 `storage` 전체를 구현했다. UV 없이 `make_io`에 조립할 수 있다. 정적/공유 Release와 ASan/UBSan의 관련 8개 검사, 강제 종료 복구·SQLite rollback, 설치 소비자·선택 해제를 검증했다. 인라인 snapshot 완료로 드러난 기존 노드의 중복 생성도 수정했다. DB 작업은 블로킹/완료 인라인이며 상세 범위·최초 실패·제한은 아래 단위를 따른다.
+
+이전 사용자 선택형 I/O 조립 단위(2026-11-04): `storage`·`timer`·`make_io`와 UV 저장소/타이머·Asio 타이머를 구현했다. 사용자가 transport와 선택 snapshot codec을 조합한다. core 계약 7개, UV 없는 Asio TCP 클러스터, 실제 codec별 snapshot 재시작, ASan/UBSan 13개 범위와 정적/공유 설치 소비자를 검증했다. 기존 `uv_io`는 유지하며 내장 영속 저장소는 UV만 제공한다. 상세 범위·최초 실패·재사용 조건은 아래 단위에 기록했다.
 
 모듈별 API 설명서 단위(2026-11-04): core/uv와 일곱 선택 어댑터, 모듈 목록의 한·영 설명서 10쌍을 추가했다. 공개 API·소유권·콜백·오류·옵션·사용 예제와 기존 기능별 문서 탐색을 정리했다. 문서 전체 31쌍/상대 링크 638개와 새 코드·서명 블록 대응을 확인했다. 문서만 수정하여 제품 빌드·테스트는 생략 — 기존 결과 재사용으로 기록한다.
 
@@ -141,6 +143,39 @@ C 라이브러리 제거·C++ 자체 테스트 전환·포맷 통일을 완료�
 기반 구성요소와 메모리 로그·스냅샷을 내부 이벤트 구동 합의 코어에 연결했다. 메모리상 클러스터에서 선거·복제·commit·멤버십·리더십 이전·분할·복구를 C와 비교한다. 공개 callback 노드 API와 I/O·FSM 인터페이스를 구현했으며 모의 backend로 검증한다. RPC·디스크 배치 직렬화와 체크섬을 독립 구현하고 형식 비교·검증을 마쳤다. 메타데이터·스냅샷·segment의 동기 파일 계층과 저장 상태 복구, direct I/O·KAIO writer와 로그 쓰기 coordinator도 구현했다. 테스트용 I/O 어댑터로 실제 디스크를 사용하는 단일 노드의 종료·재시작을 검사했다. 스냅샷·파일 coordinator와 공개 `uv_io`는 실제 저장·타이머를 추상 메시지 전송에 연결한다. 구체적인 `tcp_transport`를 `uv_io`와 노드에 연결했다. 실제 디스크·TCP 노드를 구성할 수 있다. 기본 추적과 메모리 resource의 버퍼·객체·코어/native 컨테이너 연결을 구현했다. 독립 공개 C++ 가상 시간 fixture로 메모리 I/O와 클러스터 제어를 제공한다. native 예제와 submit/disk benchmark·kernel perf/trace를 구현했다. 전체 API·호환 범위의 현재 판정은 아래 최종 감사 표를 따르며 실제 커널 측정/장치 실행의 제한은 별도로 유지한다.
 
 기존 C 구현은 `raft/`에 비교 기준으로 보존한다. `raftpp::raft`는 기존 C 라이브러리, `raftpp::raftpp`는 독립적으로 구현한 C++ 구성요소를 제공한다. 기존 C 타깃이 빌드되거나 기능 플래그가 활성화되었다는 사실은 C++ 계층 전체의 이식 완료를 의미하지 않는다.
+
+### RocksDB/SQLite 영속 저장소 모듈 (2026-11-04)
+
+`deps/rocksdb`, `deps/sqlite`, `deps/tcl`을 고정된 submodule로 추가했다. RocksDB v11.13.2는 `17b624b5c0d41bd42db5cf88aa867f3b26eaf1fa`, SQLite 3.54.1은 `57520227c95396ce39ba6ecaac8d475b78dd3964`, Tcl 8.6.17은 `433df5b20a8bd6957c3bda981c83d65202eb7de7`이며 gitlink/`deps/revisions.json`/checkout이 일치하고 작업 트리가 깨끗하다. 기존 SDK pin은 유지했다. SQLite canonical 소스의 amalgamation 생성에 필요한 Tcl은 빌드 도구일 뿐 런타임 의존성이 아니다. 두 DB의 외부 필수 런타임 경계는 플랫폼 thread 지원이다.
+
+`RAFTPP_MODULE_ROCKSDB`/`RAFTPP_MODULE_SQLITE`(기본 OFF), `raftpp::rocksdb`/`raftpp::sqlite`, 공개 헤더·export·features·엄브렐라·선택 설치/소비자를 연결했다. `rocksdb_storage`/`sqlite_storage`는 선언/링크 smoke가 아니라 core `storage` 전체를 실제 구현한다. 사용자는 `make_io`에 타이머·transport·선택 snapshot codec과 함께 전달한다. UV 의존성은 없다. core에는 `storage_limits`와 SDK를 포함하지 않는 공용 비공개 KV 저장 알고리즘을 두고 각 모듈에서 독립적으로 사용한다. 기존 합의 알고리즘/RPC/UV 파일 형식은 유지하며 새 DB 전용 v1 키 공간·메타데이터/로그/snapshot 직렬화는 API 문서에 명시했다. 기존 UV 파일 디렉터리의 자동 이관은 제공하지 않는다.
+
+term/vote·bootstrap/recover·로그 append/truncate·snapshot 게시/설치·trailing 보존과 재시작 load/get을 구현했다. RocksDB는 WAL을 활성화한 동기 `WriteBatch`; SQLite는 FULL 동기화·DELETE journal·EXCLUSIVE 연결/트랜잭션과 rollback을 사용한다. 같은 snapshot index/term을 재게시해도 이후 로그를 보존하며 같은 index의 term 충돌은 거부한다. 원자적 갱신 뒤에만 cache를 반영하고 크기/개수/인덱스·형식/길이·로그 연속성과 출력 보존을 검사한다. DB 호출·커밋은 호출 스레드를 블로킹하며 성공 완료는 인라인이다. 단일 직렬 실행 영역, 콜백/요청 데이터 수명, 콜백 안 facade 해제·close와 native 자원 해제를 보장한다. 물리 쓰기/동기화 실패로 영속 결과가 불확실하면 후속 연산 전 close/reopen해야 한다.
+
+새 DB 노드 검사에서 시작 설정의 snapshot 인라인 완료가 코어 이벤트 처리보다 앞서 같은 인덱스의 snapshot을 중복 제출하는 기존 드라이버 문제를 발견했다. 두 DB 모두 `node leader` 실패와 core `invalid` 종료를 보였고, DB 없는 메모리 저장소의 기존 `composed_io_node`에 threshold 1/trailing 0을 지정해 독립적으로 재현했다. `node.cpp`에 성공적으로 저장된 로컬 snapshot index를 기록해 대기 중인 완료 이벤트보다 먼저 중복 제출하지 않도록 했다. 즉시 제출 실패는 이 index를 갱신하지 않아 재시도할 수 있다. 합의 상태 전이 자체는 변경하지 않았다.
+
+참조 범위는 storage/io/composed_io/node의 입력·출력·메타데이터/로그/snapshot 순서·실패/콜백/정리, 기존 configuration/encoding/byte/buffer/error·메모리 모델, SDK의 실제 사용 DB/iterator/write-batch/statement/transaction API와 원본 라이선스, 의존성 준비/모듈/생성 헤더/설치/소비자 규칙이다. 실제 수정은 새 SDK/저장 모듈·공용 비공개 알고리즘·core limits/인라인 snapshot guard·관련 테스트/빌드와 한·영 API/기록이다. `docs/{ko,en}/modules/{rocksdb,sqlite}.md` 및 composition/dependencies/node/CMake/목록에는 사용 계약만 기록했다.
+
+환경: Linux x86-64, GCC 13.3.0, CMake 3.28.3, Ninja. SDK 준비는 `/tmp/raftpp-database-sdk`, prefix는 그 아래 `prefix`다. RocksDB/SQLite는 정적 PIC SDK로 준비했고 Tcl은 source-generation 도구만 사용한다. RocksDB의 tests/examples/tools/benchmarks·gflags/liburing/선택 압축, SQLite의 CLI/Tcl 바인딩/readline/확장 로드·선택 확장/수학 함수를 제외했다. SQLite configure의 zlib 감지는 상류 shell용이며 빌드한 DB archive에 zlib/Tcl 참조가 없음을 확인했다. 상류 전체 suite는 실행하지 않았다. 모든 어댑터/설치 소비자 검증은 Release다.
+
+| 검사 | 실행/생략/미검증 | 결과 또는 참조할 이전 기록 | 변경 영향 또는 생략 이유 |
+| --- | --- | --- | --- |
+| 필수 SDK 준비·pin·라이선스 | 실행 | `/tmp/raftpp-database-sdk-{configure,build-first}.log`에서 RocksDB/SQLite/Tcl 준비 완료. Tcl `info patchlevel`=8.6.17. 세 gitlink/JSON/checkout 일치·소스 무변경. SDK 및 설치본의 RocksDB LICENSE.Apache/LICENSE.leveldb/COPYING·SQLite LICENSE.md, Tcl 도구 license.terms 원문 보존 | SDK를 독립 빌드하며 필요한 라이브러리/생성 도구만 준비. SQLite prebuilt 재사용 시 Tcl을 새로 요구하지 않는 선택 경로도 구현; 그 prebuilt 경로의 별도 실행은 미검증 |
+| 인라인 snapshot 기존 문제 재현 | 실행 — 수정 전 실패 | `/tmp/raftpp-database-static-tests-first.log`, `*-diagnostic-tests.log`, `*-trace-tests.log`; DB 없는 독립 재현 `/tmp/raftpp-database-inline-core-repro-{build,test}.log`에서 `composed node leader` 실패 | 최초 DB 실패를 테스트 조작으로 숨기지 않고 실제 core 중복 snapshot 이벤트를 재현·수정. 최초 실패 로그는 통과로 재사용하지 않음 |
+| 정적 Release DB/노드 회귀 | 실행 | `/tmp/raftpp-database-static-inline-tests.log`: 8개 통과. `module_rocksdb`, `module_sqlite`, 수정 `composed_io_node`, 기존 `node_{snapshot,snapshot_allocation,restore,io_close,fsm_close}` | 두 DB ON, UV/LZ4/fixture/backtrace 및 나머지 SDK OFF, `-Wall -Wextra -Wpedantic -Werror`. 새 DB의 bootstrap/recover·term/vote·원자적 실패·불일치 snapshot 설치·trailing/재게시·크기/개수 한도·손상 metadata·배타 소유·재진입 파괴·실제 node snapshot/FSM 재시작을 검사 |
+| 공유 Release DB/노드 회귀 | 실행 | `/tmp/raftpp-database-shared-tests.log`: 같은 범위 8개 통과 | 같은 옵션/SDK와 `BUILD_SHARED_LIBS=ON`. 정적 PIC SDK를 공유 어댑터에서 소비 |
+| DB 강제 종료 복구·SQLite rollback | 실행 | 위 두 DB 검사 안에서 각각 통과. 자식이 term/vote/append/snapshot 커밋을 알린 직후 SIGKILL하고 다시 열어 확인. SQLite는 배치 두 번째 INSERT에서 trigger로 실패시켜 첫 INSERT도 rollback됨을 확인 | 정상 close가 없는 소프트웨어 프로세스 종료와 실제 SQLite 트랜잭션 실패를 검사. 하드웨어 전원 차단 검사는 아님. 손상 주입은 SDK의 최소 DB API만 사용 |
+| Release ASan/UBSan | 실행 | `/tmp/raftpp-database-sanitizer-tests.log`: 위 8개 통과. `/tmp/raftpp-database-sanitizer-build.log` | 두 DB만 ON/공유, UV/LZ4/fixture/backtrace OFF. `-fsanitize=address,undefined -fno-omit-frame-pointer`, `ASAN_OPTIONS=detect_leaks=0`, `UBSAN_OPTIONS=halt_on_error=1`. 외부 SDK는 비계측, LSan 제외 |
+| 이동 설치 소비자·헤더/export | 실행 | `package_install` 정적/공유 각각 통과, 각 내부 소비자 7개(aggregate/core/두 DB, 격리 core/두 DB). `/tmp/raftpp-database-{static,shared}-package.log`. 비공개 `database_storage.hpp` 미설치, 활성 헤더/export와 원본 라이선스 일치도 확인 | 새 공개 API/SDK 링크와 독립 `find_package` 소비. 최초 정적 소비자 기록은 OFF 재구성 전 `.../tests/package-install/Release-db/`로 보존했고 공유는 `Release/` 유지 |
+| 같은 빌드에서 두 DB OFF | 실행 | `/tmp/raftpp-database-off-{configure,build,tests}.log`: core-only `composed_io_node`/`package_install` 2개와 내부 소비자 3개 통과. `*-off-headers.log`: 두 SDK 헤더/타깃 제거, 매크로 0 확인 | RocksDB/SQLite3/Threads/PkgConfig 감지를 강제로 비활성화해 선택 의존성 없는 core 빌드·소비를 확인. UV/LZ4/모든 SDK OFF. 원래 두 DB ON 옵션은 configure로 복구했으며 복구만을 이유로 재실행하지 않음 |
+| 기존 UV 비동기 snapshot 조합 | 실행 | `/tmp/raftpp-database-uv-regression-tests.log`: `composition_uv`, `composition_zstd` 2개 통과 | 기존 `/tmp/raftpp-composition-native`의 공유 Release·UV/LZ4·Asio/3 codec ON(두 DB OFF). node snapshot guard 변경이 기존 비동기 저장/UV timer 및 Asio timer+Zstd의 실제 재시작을 유지하는지 확인 |
+| 최초 준비/빌드 실패·수정 | 실행 기록 보존 | 정적 `*-configure.log`, `*-build-first.log`, `*-build-fixed.log`, `*-build-initialized.log`, `*-build-ready.log`; 성공 `*-build-final.log`, `*-inline-build.log` | 최초 git submodule의 tag/branch 선택은 tag fetch/detach로 정정. CMake imported target의 디렉터리 가시성, 고정 extent span 생성, RocksDB 11.13.2의 unique_ptr Open API, 테스트 helper 이름 충돌을 수정했다. GCC optional 수명 경고는 경고를 끄지 않고 concrete snapshot+콜백용 optional 구성으로 정리. 그 과정의 초기 치환 컴파일 오류도 보존 |
+| API 언어/링크·C++ 포맷 | 실행 | 문서 34쌍·상대 링크 732개 오류 없음·모듈 코드/서명 39블록 대응. `/tmp/raftpp-database-docs-validation.json`; 변경/추가 C++ 11파일 clang-format 검사와 `git diff --check` 통과 | 두 언어의 API/한도/오류/소유·블로킹/인라인 계약, 옵션·예제를 소스와 대조. 문서의 모든 코드를 실행한 결과는 아님 |
+| 변경 없는 검사·추가 matrix | 생략 — 기존 결과 재사용 | 앞선 `사용자 선택형 I/O 조립`/`core 추상 인터페이스의 실제 어댑터`와 기능별 기록의 관련 결과 | 합의/직렬화 알고리즘·기존 SDK 구현/checkout은 그대로다. node snapshot 영향은 위 회귀로 한정해 재검증했다. 전체 suite/상류 suite/무관한 SDK 검사와 추가 fixture/backtrace/UV matrix는 반복하지 않음 |
+
+SDK 명령: `cmake -S deps -B /tmp/raftpp-database-sdk -G Ninja '-DRAFTPP_DEPENDENCIES=rocksdb;sqlite' -DRAFTPP_DEPS_SHARED=OFF -DRAFTPP_DEPS_JOBS=3`, `cmake --build /tmp/raftpp-database-sdk --parallel 2`. 제품은 각 `/tmp/raftpp-database-{static,shared,sanitizer}`에서 `cmake -S . -B <profile> -G Ninja -DCMAKE_BUILD_TYPE=Release -DRAFTPP_BUILD_TESTS=ON -DRAFTPP_MODULE_ROCKSDB=ON -DRAFTPP_MODULE_SQLITE=ON -DRAFTPP_WITH_UV=OFF -DRAFTPP_WITH_LZ4=OFF -DRAFTPP_WITH_FIXTURE=OFF -DRAFTPP_WITH_BACKTRACE=OFF -DRAFTPP_DEPENDENCY_PREFIX=/tmp/raftpp-database-sdk/prefix`에 위 링크/컴파일 옵션을 지정했다. 빌드는 `cmake --build <profile> --parallel 3 --target raftpp_module_rocksdb_check raftpp_module_sqlite_check raftpp_composed_io_tests raftpp_node_tests`; 선택 CTest regex는 `^raftpp\.(module_(rocksdb|sqlite)|composed_io_node|node_(snapshot|snapshot_allocation|restore|io_close|fsm_close))$`다. 설치는 `^raftpp\.package_install$`, 기존 UV는 `^raftpp\.composition_(uv|zstd)$`로 `ctest --test-dir <profile> -C Release -R '<regex>' --output-on-failure`를 사용했다. 문서 검사 스크립트의 모듈 목록/보고서 경로만 확장해 과거 최초 JSON은 유지했다.
+
+현재 구현·위 범위 검증을 완료했다. 남은 제한은 DB 작업의 호출 스레드 블로킹, 자동 UV 파일 이관/백그라운드 실행기 미제공, Windows/교차 컴파일·공유 SDK 준비 조합·장치 전원 차단/모든 파일시스템·LSan 미검증이다. 이전 단위의 “내장 영속 저장소는 UV뿐”이라는 상태는 당시 기록이며 현재는 UV/RocksDB/SQLite를 선택할 수 있다.
 
 ### 사용자 선택형 I/O 조립 (2026-11-04)
 

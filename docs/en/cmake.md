@@ -58,6 +58,7 @@ Use versionless `find_package(raftpp CONFIG)`. `reference_version` describes the
 | `RAFTPP_BUILD_EXAMPLES` | OFF by default. Requires UV; independent of tests/fixture/LZ4. |
 | `RAFTPP_BUILD_BENCHMARKS` | OFF by default. Requires UV; independent of examples/tests/fixture/LZ4. |
 | `BUILD_SHARED_LIBS` | Static unless configured otherwise; ON builds a shared library. |
+| `RAFTPP_MODULE_ROCKSDB`, `RAFTPP_MODULE_SQLITE` | OFF by default. Enables the SDKs and independent `storage` implementations in [database storage modules](dependencies.md). UV is not required. |
 | `RAFTPP_INSTALL` | Initially ON at top level/OFF in subprojects. Generates install rules and the CMake package. |
 
 UV-enabled installed packages rediscover libuv through PkgConfig in the consumer environment. Static LZ4 builds also rediscover liblz4; static backtrace builds find GNU libbacktrace in the consumer compiler's search paths. Producer dependency absolute paths are not copied. Shared-library private LZ4/backtrace links do not impose consumer development-header/PkgConfig requirements. Runtime lookup of external shared libraries follows platform-loader rules.

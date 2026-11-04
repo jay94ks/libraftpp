@@ -58,7 +58,7 @@ Replace components with user objects implementing the abstract interfaces. Enabl
 
 Synchronous methods and asynchronous submissions return `error_code`. Immediate failure invokes no completion; accepted work completes once, possibly inline. Storage treats snapshot payloads as owned bytes and must not transform composer frames. `uv_storage` passes these frames through while retaining its existing legacy LZ4 snapshot-read contract.
 
-The built-in durable provider is [UV `uv_storage`](modules/uv.md). Supply another `storage` implementation for storage without UV. Asio/QUIC stream adapters do not themselves provide file persistence.
+Built-in durable providers are [UV `uv_storage`](modules/uv.md), [RocksDB `rocksdb_storage`](modules/rocksdb.md), and [SQLite `sqlite_storage`](modules/sqlite.md). RocksDB/SQLite work without UV and use `storage_limits` to bound entry/snapshot sizes and entry count. DB calls/commits block and completions are inline. Other stores can implement `storage` too. Asio/QUIC stream adapters do not themselves provide file persistence.
 
 UV log-entry payload lengths must remain multiples of eight, as required by the existing disk format. The composer does not pad commands. Snapshot payloads do not have this alignment requirement.
 

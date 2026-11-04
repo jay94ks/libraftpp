@@ -1,4 +1,4 @@
-foreach(file LICENSE LICENSE.md LICENSE.txt LICENSE_1_0.txt NOTICE NOTICE.txt COPYING COPYING.LESSER COPYING.LIB README lib/LICENSE lib/COPYING)
+foreach(file LICENSE LICENSE.Apache LICENSE.leveldb license.terms LICENSE.md LICENSE.txt LICENSE_1_0.txt NOTICE NOTICE.txt COPYING COPYING.LESSER COPYING.LIB README lib/LICENSE lib/COPYING)
     if(EXISTS "${RAFTPP_SDK_SOURCE}/${file}")
         get_filename_component(directory "${file}" DIRECTORY)
         file(INSTALL "${RAFTPP_SDK_SOURCE}/${file}"

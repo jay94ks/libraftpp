@@ -12,7 +12,10 @@ option(RAFTPP_MSQUIC_EXTERNAL_OPENSSL "Use installed OpenSSL 3.5+ instead of bun
 set(RAFTPP_MSQUIC_TLS openssl CACHE STRING "MsQuic TLS provider: openssl, quictls, or schannel")
 include("${CMAKE_CURRENT_LIST_DIR}/../cmake/mvfst-dependencies.cmake")
 set(_supported asyncpp asio boost openssl fmt fast_float gflags glog libevent libsodium
-    lz4 zstd zlib folly fizz mvfst msquic)
+    lz4 zstd zlib folly fizz mvfst msquic tcl rocksdb sqlite)
+if("sqlite" IN_LIST RAFTPP_DEPENDENCIES AND NOT "sqlite" IN_LIST RAFTPP_DEPS_PREBUILT)
+    list(APPEND RAFTPP_DEPENDENCIES tcl)
+endif()
 set(pending ${RAFTPP_DEPENDENCIES})
 while(pending)
     list(POP_FRONT pending name)
@@ -62,6 +65,26 @@ foreach(name IN LISTS _supported)
                 -P "${CMAKE_CURRENT_LIST_DIR}/../cmake/install-sdk-headers.cmake")
         continue()
     endif()
+    if(name STREQUAL "tcl" OR name STREQUAL "sqlite")
+        if(WIN32 OR CMAKE_CROSSCOMPILING)
+            message(FATAL_ERROR "The ${name} preparation recipe requires native POSIX tools; provide an installed SDK otherwise")
+        endif()
+        set(prerequisites)
+        if(name STREQUAL "sqlite")
+            set(prerequisites raftpp_dep_tcl)
+        endif()
+        ExternalProject_Add(raftpp_dep_${name}
+            DEPENDS ${prerequisites}
+            SOURCE_DIR "${source}" DOWNLOAD_COMMAND "" UPDATE_COMMAND ""
+            CONFIGURE_COMMAND "" INSTALL_COMMAND ""
+            BUILD_COMMAND "${CMAKE_COMMAND}" "-DRAFTPP_SDK_NAME=${name}"
+                "-DRAFTPP_SDK_SOURCE=${source}" "-DRAFTPP_SDK_WORK=${binary}"
+                "-DRAFTPP_SDK_PREFIX=${prefix}" "-DRAFTPP_TCL_PREFIX=${RAFTPP_DEPS_PREFIX}/tcl"
+                "-DRAFTPP_SDK_SHARED=${RAFTPP_DEPS_SHARED}" "-DRAFTPP_SDK_JOBS=${RAFTPP_DEPS_JOBS}"
+                -P "${CMAKE_CURRENT_LIST_DIR}/../cmake/build-database-sdk.cmake"
+            BUILD_ALWAYS ON USES_TERMINAL_BUILD TRUE)
+        continue()
+    endif()
     if(name STREQUAL "boost" OR name STREQUAL "openssl" OR name STREQUAL "libsodium")
         if(WIN32)
             message(FATAL_ERROR "The source preparation recipe for ${name} requires POSIX tools; provide an installed SDK on Windows")
@@ -81,7 +104,16 @@ foreach(name IN LISTS _supported)
     set(extra ${RAFTPP_SDK_EXTRA})
     set(subdir "${RAFTPP_SDK_SUBDIR}")
     set(download DOWNLOAD_COMMAND "")
-    if(name STREQUAL "lz4")
+    if(name STREQUAL "rocksdb")
+        list(APPEND extra -DROCKSDB_BUILD_SHARED=${RAFTPP_DEPS_SHARED}
+            -DWITH_TESTS=OFF -DWITH_ALL_TESTS=OFF -DWITH_BENCHMARK=OFF
+            -DWITH_BENCHMARK_TOOLS=OFF -DWITH_CORE_TOOLS=OFF -DWITH_TOOLS=OFF
+            -DWITH_TRACE_TOOLS=OFF -DWITH_EXAMPLES=OFF -DWITH_GFLAGS=OFF
+            -DWITH_LIBURING=OFF -DWITH_JEMALLOC=OFF -DWITH_SNAPPY=OFF
+            -DWITH_LZ4=OFF -DWITH_ZSTD=OFF -DWITH_ZLIB=OFF -DWITH_BZ2=OFF
+            -DUSE_FOLLY=OFF -DUSE_COROUTINES=OFF -DPORTABLE=ON -DUSE_RTTI=ON
+            -DFAIL_ON_WARNINGS=OFF)
+    elseif(name STREQUAL "lz4")
         set(subdir build/cmake)
         list(APPEND extra -DLZ4_BUILD_CLI=OFF -DLZ4_BUILD_LEGACY_LZ4C=OFF
             -DLZ4_BUNDLED_MODE=OFF -DBUILD_STATIC_LIBS=OFF)
