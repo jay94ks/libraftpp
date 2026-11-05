@@ -2,7 +2,7 @@
 
 [English](../en/cmake.md) · [이벤트 코어](core.md) · [libuv I/O](uv_io.md) · [추적](tracing.md) · [모듈별 API](modules/index.md) · [I/O 조립](composition.md)
 
-`raftpp::raftpp`는 활성 모듈 라이브러리와 C++20 사용 조건을 연결하는 인터페이스 타깃이다. CMake 3.20 이상을 사용한다. 소스 빌드·테스트·예제·도구와 설치 패키지 소비자는 C++ 컴파일러만 사용한다. 모듈 라이브러리는 항상 활성인 `raftpp::core`, `RAFTPP_WITH_UV=ON`의 `raftpp::uv`와 선택된 `RAFTPP_MODULE_<NAME>` 어댑터다. 전체 활성 모듈은 통합 타깃으로, 개별 API는 해당 모듈 타깃으로 연결한다. uv는 core를 전이적으로 연결한다.
+`raftpp::raftpp`는 활성 모듈 라이브러리와 C++20 사용 조건을 연결하는 인터페이스 타깃이다. CMake 3.20 이상을 사용한다. 네이티브 소스·예제·도구와 CMake 설치 패키지 소비자는 C++ 컴파일러만 사용한다. 선택 바인딩의 언어 테스트·관리 프로젝트는 해당 런타임/SDK를 사용한다. 모듈 라이브러리는 항상 활성인 `raftpp::core`, `RAFTPP_WITH_UV=ON`의 `raftpp::uv`와 선택된 `RAFTPP_MODULE_<NAME>` 어댑터다. 전체 활성 모듈은 통합 타깃으로, 개별 API는 해당 모듈 타깃으로 연결한다. uv는 core를 전이적으로 연결한다.
 
 `#include <raftpp.hpp>`는 전체 활성 모듈, `<raftpp/raft.hpp>`는 core, `<raftpp/uv/uv.hpp>`는 uv의 진입점이다. 구체적인 헤더는 `<raftpp/uv/uv_io.hpp>`처럼 `<raftpp/uv/...>`에 있다. 타입 이름은 `raftpp` 네임스페이스를 유지한다. UV 비활성 시 UV 헤더가 없고 fixture 비활성 시 `fixture.hpp`가 없다. UV의 압축 보조 함수는 LZ4 비활성 시 `invalid`를 반환한다. 별도 `lz4`·`zstd`·`zlib` 코덱 모듈과 core의 추상 `compression_codec`은 [모듈별 API](modules/index.md)를 따른다.
 
@@ -54,6 +54,8 @@ target_link_libraries(app PRIVATE raftpp::raftpp)
 | `RAFTPP_WITH_LZ4` | UV와 liblz4 1.7.1 이상을 감지하면 최초 기본 ON이다. UV 없이 활성화할 수 없다. |
 | `RAFTPP_WITH_FIXTURE` | 기본 ON. OFF에서는 fixture API·구현·관련 테스트 의존성이 제외된다. |
 | `RAFTPP_WITH_BACKTRACE` | 기본 OFF. 생산자 빌드에서 GNU libbacktrace 헤더·라이브러리와 `__assert_fail`이 필요하며 UV와 독립적이다. [추적](tracing.md)의 assertion 조건을 따른다. |
+| `RAFTPP_MODULE_BINDINGS` | 기본 OFF. [Node.js·C# 공유 브리지](modules/bindings.md)를 빌드한다. core는 필수이고 선택한 조립에 따라 UV/SDK를 연결한다. 항상 공유 라이브러리다. |
+| `RAFTPP_BINDINGS_NODEJS` | 기본 OFF. bindings가 켜져 있어야 하며 Node 헤더로 Node-API 애드온을 추가한다. |
 | `RAFTPP_BUILD_TESTS` | 기본 OFF. 선택한 기능에 맞는 CTest 타깃을 빌드한다. |
 | `RAFTPP_BUILD_EXAMPLES` | 기본 OFF. UV가 필요하며 테스트·fixture·LZ4와 독립적이다. |
 | `RAFTPP_BUILD_BENCHMARKS` | 기본 OFF. UV가 필요하며 예제·테스트·fixture·LZ4와 독립적이다. |

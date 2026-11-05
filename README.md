@@ -40,6 +40,7 @@ cmake --build build/core --config Release --parallel
 | [zlib](docs/ko/modules/zlib.md) | `RAFTPP_MODULE_ZLIB` | zlib 형식 DEFLATE 압축 |
 | [rocksdb](docs/ko/modules/rocksdb.md) | `RAFTPP_MODULE_ROCKSDB` | RocksDB 영속 저장소 |
 | [sqlite](docs/ko/modules/sqlite.md) | `RAFTPP_MODULE_SQLITE` | SQLite 영속 저장소 |
+| [bindings](docs/ko/modules/bindings.md) | `RAFTPP_MODULE_BINDINGS` | Node.js·C# 공유 브리지와 선택 Node-API 애드온 |
 
 각 모듈은 `raftpp::<모듈명>` 타깃과 공개 헤더를 제공한다. `raftpp::raftpp`와 `<raftpp.hpp>`는 활성 모듈 전체를 모은다. 일부 컴포넌트만 소비하려면 `find_package(raftpp CONFIG REQUIRED COMPONENTS sqlite)`처럼 선택하고 해당 모듈 타깃·헤더를 사용한다.
 
@@ -134,6 +135,10 @@ ctest --test-dir build/core -C Release --output-on-failure
 ```
 
 개발 작업의 검증 대상 선택과 기존 결과 재사용 원칙은 [작업 지침](AGENTS.md)을 따른다.
+
+## 언어 바인딩
+
+[Node.js·C# API](docs/ko/modules/bindings.md)를 제공한다. 네이티브 구현은 `modules/bindings`, 언어 패키지는 `bindings/nodejs`와 `bindings/csharp`에 있다. `RAFTPP_MODULE_BINDINGS=ON`으로 선택 모듈을 조립하는 공유 런타임을, `RAFTPP_BINDINGS_NODEJS=ON`으로 Node-API 애드온을 추가한다. Node.js는 콜백·`camelCase`, C#은 콜백·`PascalCase` API를 사용한다. 노드 설정·복제 질의·FSM 훅·추적과 저장소/타이머/transport/압축 선택을 제공하며 C# `RaftHost`는 실행 스레드와 Poll을 관리한다.
 
 ## 문서와 소스 구조
 

@@ -33,6 +33,10 @@ namespace raftpp {
                                         completion callback) noexcept {
         return backend_->snapshot_put(trailing, std::move(value), std::move(callback));
     }
+    error_code uv_storage::snapshot_put_local(unsigned trailing, shared<const snapshot> value,
+                                              completion callback) noexcept {
+        return backend_->snapshot_put_local(trailing, std::move(value), std::move(callback));
+    }
     error_code uv_storage::snapshot_get(snapshot_callback callback) noexcept {
         return backend_->snapshot_get(std::move(callback));
     }

@@ -73,6 +73,7 @@ error_code set_snapshot_compression(bool enabled) noexcept;
 | `truncate(index)` | 해당 인덱스부터 접미사를 제거하는 blocking barrier와 worker를 제출한다. 후속 append의 순서를 보장한다. 제출 이후 오류는 `last_error()`와 후속 요청 결과에 반영된다. |
 | `append(index, entries, callback)` | 현재 다음 인덱스부터 기록하고 받아들인 batch·payload를 완료까지 소유한다. 즉시 반환 오류에는 콜백을 호출하지 않는다. |
 | `snapshot_put(trailing, value, callback)` | 임시 파일을 준비하고 선행 로그를 마친 barrier 이후 공개·정리한다. 한 번에 하나만 제출할 수 있으며 중복은 `busy`다. |
+| `snapshot_put_local(trailing, value, callback)` | 로컬 스냅샷 공개. trailing=0도 현재 append 인덱스와 스냅샷 이후 로그를 보존한다. node가 로컬 생성에 사용하며 원격 설치는 snapshot_put을 사용한다. |
 | `snapshot_get(callback)` | worker에서 최신 스냅샷을 읽는다. 없으면 성공과 `nullopt`, 읽기 실패면 오류와 `nullopt`를 전달한다. 여러 조회를 함께 제출할 수 있다. |
 
 `recover(configuration)`은 현재 자동 복구 정책으로 로컬 snapshot·로그를 읽고 복구 가능한 open segment를 닫은 뒤, 복구된 다음 인덱스에 전달한 설정을 추가한다. 새 엔트리는 마지막 저장 엔트리의 term을 사용하며 로그가 없으면 snapshot의 term을 사용한다. term·vote 메타데이터와 기존의 유효한 이력을 유지한다. snapshot만 있는 저장소도 지원하며 로그·snapshot이 모두 없으면 `invalid`다. `load` 전에 반복하면 설정 엔트리를 하나 더 추가한다. 로드로 파일 coordinator를 연 뒤에는 `bootstrap`·`recover`가 `busy`를 반환한다.

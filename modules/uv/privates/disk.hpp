@@ -118,7 +118,8 @@ namespace raftpp::detail {
         [[nodiscard]] error_code truncate(log_index index,
                                           error_info* diagnostic = nullptr) noexcept;
         [[nodiscard]] error_code prune_segments(log_index last_index, size_t trailing,
-                                                error_info* diagnostic = nullptr) noexcept;
+                                                error_info* diagnostic = nullptr,
+                                                bool local = false) noexcept;
         [[nodiscard]] error_code prepare_segment(uint64_t counter, size_t size, file_handle& output,
                                                  error_info* diagnostic = nullptr) noexcept;
         [[nodiscard]] error_code finalize_segment(uint64_t counter, size_t used, log_index first,

@@ -51,6 +51,7 @@ Replace components with user objects implementing the abstract interfaces. Enabl
 | `truncate(log_index)` | Removes the suffix starting at that index, preserving storage order with later appends. |
 | `append(log_index, shared<const entry_batch>, completion)` | Retains accepted batches until one completion reporting persistence results. |
 | `snapshot_put(unsigned trailing, shared<const snapshot>, completion)` | Publishes a snapshot with ordering relative to earlier logs and the trailing-retention policy. |
+| `snapshot_put_local(unsigned trailing, shared<const snapshot>, completion)` | Locally created snapshot; defaults to forwarding to snapshot_put. UV preserves newer log suffixes even with trailing=0, distinguishing remote installation. |
 | `snapshot_get(snapshot_callback)` | Success with `nullopt` when absent; otherwise provides an owned snapshot value. |
 | `close(close_callback) noexcept` | Stops submissions and drains accepted operations/cleanup before completion. Must support closing before initialization. |
 | `capacity() const noexcept` | Capacity in KiB, forwarded to `io::capacity()`. Default 0. |

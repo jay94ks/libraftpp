@@ -46,6 +46,7 @@
 
 - Do not reintroduce the original C implementation, C reference targets, or C comparison code into the repository/build. Maintain independent C++ tests using fixed format/random vectors, independent standard-container models, and state/lifetime/order contracts.
 - `modules/core/include/raftpp/`: Authoritative core public headers, including support definitions required by public value types.
+- `modules/bindings/`: native bridge and Node-API addon for Node.js/C#. Selected by `RAFTPP_MODULE_BINDINGS` and requires core; UV/SDK dependencies follow the selected runtime composition. Language APIs/packages belong in `bindings/nodejs` and `bindings/csharp`.
 - `modules/<sdk>/`: optional adapters implementing core abstractions. They depend on core and are selected through `RAFTPP_MODULE_<NAME>`. Distinguish them from upstream checkouts/SDK preparation in `deps/`.
 - `modules/uv/include/raftpp/uv/`: Authoritative built-in I/O/transport/stream/compression public headers.
 - `modules/<module>/privates/`: Private implementation headers; never copy them into public or installed include trees.
@@ -64,6 +65,8 @@
 - Preserve source attribution and references to `LICENSE.md` for derived implementations.
 
 ## Language and Naming
+
+- Public APIs in `bindings/nodejs` follow JavaScript/TypeScript conventions: `camelCase` members/options and `PascalCase` classes/types. `bindings/csharp` follows .NET conventions: `PascalCase` types/methods/properties/enum values and `camelCase` parameters. Native C++ in `modules/bindings` retains the existing `snake_case` rule.
 
 - Use C++20 without compiler language extensions for the library, tests, examples, and tools.
 - Follow standard-library-style `snake_case` for types, functions, variables, namespaces, and enumerators.
@@ -124,6 +127,8 @@ Keep the following meanings for common types.
 | `RAFTPP_WITH_LZ4` | Initially enabled when UV is enabled and liblz4 1.7.1 or newer is detected. Cannot be enabled without UV. |
 | `RAFTPP_WITH_FIXTURE` | ON by default. Exclude fixture sources, public headers, and related test dependencies when disabled. |
 | `RAFTPP_WITH_BACKTRACE` | OFF by default. Requires GNU libbacktrace headers/library and `__assert_fail` when enabled. Independent of UV/LZ4/fixture; prints a call stack on assertion failure in library builds without `NDEBUG`. |
+| `RAFTPP_MODULE_BINDINGS` | Default OFF. Builds shared runtime bindings using core and optional UV/SDKs, including UV-free plugin/DB composition. |
+| `RAFTPP_BINDINGS_NODEJS` | Default OFF. Builds the Node-API addon with bindings enabled; requires Node headers. |
 | `RAFTPP_BUILD_TESTS` | OFF by default. Enables building CTest tests. |
 | `RAFTPP_BUILD_EXAMPLES` | OFF by default. Builds C++ server/cluster examples and requires UV. Does not require tests, fixture, or LZ4. |
 | `RAFTPP_BUILD_BENCHMARKS` | OFF by default. Builds the C++ native benchmark tool and requires UV. Does not require examples, tests, fixture, or LZ4. |

@@ -480,6 +480,14 @@ namespace raftpp::detail {
         }
         error_code snapshot_put(unsigned trailing, shared<const snapshot> value,
                                 completion callback) noexcept override {
+            return put_snapshot(trailing, std::move(value), std::move(callback), false);
+        }
+        error_code snapshot_put_local(unsigned trailing, shared<const snapshot> value,
+                                      completion callback) noexcept override {
+            return put_snapshot(trailing, std::move(value), std::move(callback), true);
+        }
+        error_code put_snapshot(unsigned trailing, shared<const snapshot> value,
+                                completion callback, bool local) noexcept {
             auto state = state_;
             composed_io_state::scope guard{state};
             if (auto error = state->available())
@@ -493,7 +501,10 @@ namespace raftpp::detail {
                 return errc::shutdown;
             return state->submit(
                 *state->parts.storage, value, encoded, std::move(callback), [&](completion done) {
-                    return state->parts.storage->snapshot_put(trailing, encoded, std::move(done));
+                    return local ? state->parts.storage->snapshot_put_local(trailing, encoded,
+                                                                            std::move(done))
+                                 : state->parts.storage->snapshot_put(trailing, encoded,
+                                                                      std::move(done));
                 });
         }
         error_code snapshot_get(snapshot_callback callback) noexcept override {

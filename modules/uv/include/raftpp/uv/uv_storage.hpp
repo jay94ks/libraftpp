@@ -24,6 +24,8 @@ namespace raftpp {
                           completion callback) noexcept override;
         error_code snapshot_put(unsigned trailing, shared<const snapshot> value,
                                 completion callback) noexcept override;
+        error_code snapshot_put_local(unsigned trailing, shared<const snapshot> value,
+                                      completion callback) noexcept override;
         error_code snapshot_get(snapshot_callback callback) noexcept override;
         void close(close_callback callback = {}) noexcept override;
         uint16_t capacity() const noexcept override;

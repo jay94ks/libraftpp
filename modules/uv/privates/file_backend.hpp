@@ -26,7 +26,7 @@ namespace raftpp::detail {
                                         completion callback) noexcept;
         [[nodiscard]] error_code truncate(log_index index) noexcept;
         [[nodiscard]] error_code snapshot_put(unsigned trailing, shared<const snapshot> value,
-                                              completion callback) noexcept;
+                                              completion callback, bool local = false) noexcept;
         [[nodiscard]] error_code snapshot_get(snapshot_callback callback) noexcept;
         [[nodiscard]] error_code close(close_callback callback = {}) noexcept;
         [[nodiscard]] size_t capacity() const noexcept;

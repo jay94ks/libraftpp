@@ -2,11 +2,15 @@
 
 [English](REWRITTEN.en.md)
 
-최종 갱신: 2026-11-04
+최종 갱신: 2026-11-05
 
 전체 cowsql/raft 라이브러리를 C++20으로 이식하는 작업의 현황과 검증 기록이다. 작업 원칙은 [AGENTS.md](AGENTS.md)를 따른다. 이 문서와 영어 대응본은 함께 갱신한다. API 설명서는 루트의 `docs/ko/`와 `docs/en/`에 작성하며, 이 문서의 진행 기록을 API 설명서에 복사하지 않는다.
 
 ## 전체 상태
+
+바인딩 런타임 확장(2026-11-05): 공개 node의 39개 메서드 이름과 설정·진단·FSM 훅을 두 언어에 연결했다. 선택 저장소/타이머/코덱·사용자 transport·플러그인 런타임과 C# 자동 실행 호스트를 구현하고 Release 정적/공유·UV 없는 DB·코어 전용 구성을 검증했다. 로컬 스냅샷 후속 로그 보존을 수정해 snapshotTrailing=0도 지원한다. 실제 검증·재사용 범위와 connector 책임은 아래 확장 단위에 기록한다. 기존 v1은 과거 기록이다.
+
+이전 초기 Node.js/C# 바인딩 v1(2026-11-05): `modules/bindings` 네이티브 브리지·Node-API와 두 언어의 콜백 API를 구현했다. 당시 Release 정적/공유의 경계 검사, ASan/UBSan 네이티브 검사, 이동 설치의 CMake/Node/.NET 소비자를 검증했다. 언어별 표준 네이밍과 당시 UV 전용·양수 snapshotTrailing·C# 수동 Poll 제한 및 최초 실패는 아래 과거 단위에 보존한다.
 
 README 안내 문서(2026-11-04): 프로젝트 소개·빌드/설치·선택 모듈·I/O 조립·실행 예제·API 탐색을 담는 README.md와 영어 대응본을 추가했다. 문서 35쌍/링크 786개와 README 코드 7블록의 대응을 확인했다. 문서만 변경해 제품 빌드·테스트는 생략 — 기존 결과 재사용이다.
 
@@ -145,6 +149,62 @@ C 라이브러리 제거·C++ 자체 테스트 전환·포맷 통일을 완료�
 기반 구성요소와 메모리 로그·스냅샷을 내부 이벤트 구동 합의 코어에 연결했다. 메모리상 클러스터에서 선거·복제·commit·멤버십·리더십 이전·분할·복구를 C와 비교한다. 공개 callback 노드 API와 I/O·FSM 인터페이스를 구현했으며 모의 backend로 검증한다. RPC·디스크 배치 직렬화와 체크섬을 독립 구현하고 형식 비교·검증을 마쳤다. 메타데이터·스냅샷·segment의 동기 파일 계층과 저장 상태 복구, direct I/O·KAIO writer와 로그 쓰기 coordinator도 구현했다. 테스트용 I/O 어댑터로 실제 디스크를 사용하는 단일 노드의 종료·재시작을 검사했다. 스냅샷·파일 coordinator와 공개 `uv_io`는 실제 저장·타이머를 추상 메시지 전송에 연결한다. 구체적인 `tcp_transport`를 `uv_io`와 노드에 연결했다. 실제 디스크·TCP 노드를 구성할 수 있다. 기본 추적과 메모리 resource의 버퍼·객체·코어/native 컨테이너 연결을 구현했다. 독립 공개 C++ 가상 시간 fixture로 메모리 I/O와 클러스터 제어를 제공한다. native 예제와 submit/disk benchmark·kernel perf/trace를 구현했다. 전체 API·호환 범위의 현재 판정은 아래 최종 감사 표를 따르며 실제 커널 측정/장치 실행의 제한은 별도로 유지한다.
 
 기존 C 구현은 `raft/`에 비교 기준으로 보존한다. `raftpp::raft`는 기존 C 라이브러리, `raftpp::raftpp`는 독립적으로 구현한 C++ 구성요소를 제공한다. 기존 C 타깃이 빌드되거나 기능 플래그가 활성화되었다는 사실은 C++ 계층 전체의 이식 완료를 의미하지 않는다.
+
+### Node.js·C# 실행 런타임 확장 (2026-11-05)
+
+단순 UV 래퍼에서 노드 실행·조립 런타임으로 확장했다. 네이티브 코드는 `modules/bindings`, 언어 API는 `bindings/`에 유지한다. 공개 `node.hpp`의 고유 메서드 이름 39개에 대응하는 초기화·복구·명령·멤버십·이전·조회·설정·seed·추적·종료를 제공한다. 이름 감사는 동작 검증과 별도이며 fixture/내부 유틸리티마다 관리 언어 클래스를 만드는 범위는 아니다. FSM의 두 번째 동기 snapshot 단계·finalize, 진단 원인·설정 복사·전체 리더 주소·peer 상태를 노출한다. step/trace는 실제 네이티브 시점에 동기 호출한다. FSM/관찰자의 상태 조회·종료를 허용하고 중첩 Poll을 거부하며 요청 완료→종료 순서를 보존한다.
+
+기본 조립은 storage=UV/SQLite/RocksDB, timer=UV/Asio/표준 monotonic poll, network=UV/사용자 packet transport, snapshot codec=none/LZ4/zstd/zlib를 선택한다. UV 없는 DB와 SDK 없는 코어 전용 런타임도 지원한다. `runtime.hpp`의 factory 등록·플러그인 로딩은 사용자 io와 owner/poll/drain/abandon·설정 바이트를 연결한다. 플러그인은 프로세스 수명 동안 유지한다. asyncpp/mvfst/msquic은 이 경계에서 기존 실행기·연결된 스트림 계약을 사용하며 자동 TLS/QUIC 연결 factory를 추가한 것은 아니다. 사용자 transport는 완전한 RPC 복사·송신/종료 완료·늦은 완료 무시를 처리하고 C#은 외부 스레드 입력을 생성 스레드로 큐잉한다.
+
+C# `RaftHost`는 전용 생성 스레드에서 시작·Poll·FIFO Post·종료를 구동한다. 직접 노드의 수동 Poll과 JS 자동 Poll도 유지한다. 언어별 네이밍을 적용하고 모든 scalar node 옵션·저장소 한계·UV 설정과 raw/bytes payload를 노출한다. ABI는 2이며 v1 create/status/completion 레이아웃·심볼을 보존한다. 기본 bytes envelope도 유지하며 raw 모드는 네이티브 정렬 등 사전조건을 따른다. 코루틴·Promise/Task API는 추가하지 않았다.
+
+trailing=0 로컬 snapshot이 후속 append 인덱스를 재설정하고 최신 닫힌 segment까지 제거하는 경로를 재현했다. core `io/storage::snapshot_put_local` 기본 전달 메서드와 node→composed→UV 경로를 추가하고 file_backend의 로컬 barrier·disk segment 보존을 구분했다. 원격 설치의 전체 교체는 유지한다. 새 `file_snapshot_local`은 snapshot index 2 전후에 24까지 append한 후 재시작 suffix 보존과 원격 snapshot 50의 교체를 확인한다. 합의 알고리즘·디스크/RPC 형식은 바꾸지 않았다. 새 가상 메서드가 있으므로 C++ 플러그인은 같은 헤더/ABI로 빌드한다.
+
+참조 범위: 공개 node/FSM/io/storage/make_io, 선택 저장소·타이머·코덱·transport/stream/executor의 소유·콜백·정리, UV snapshot/writer/prune, 생성/설치/컴포넌트 규칙과 두 언어 interop·검사. 실제 변경은 bindings 모듈·언어 패키지/검사, 위 core/UV 로컬 snapshot 경로·회귀, CMake/설치·한영 API/README/지침/현황이다. deps/SDK 소스와 무관한 하위 트리는 수정하지 않았다.
+
+검증 환경은 2026-11-05 Linux x86-64·GCC 13.3·CMake 3.28.3·Release, Node 20.20.2/libuv 1.48.0이다. C# net8.0은 SDK 10.0.403/runtime 10.0.14와 테스트 RollForward=Major로 실행해 순수 .NET 8 검증은 아니다. 아래 로그의 `*-` 접두사는 `/tmp/raftpp-bindings-v2-`다. 공통 옵션은 `RAFTPP_BUILD_TESTS/MODULE_BINDINGS/BINDINGS_NODEJS=ON`, `WITH_LZ4/WITH_FIXTURE=OFF`다. SDK6은 ASIO/SQLITE/ROCKSDB/LZ4/ZSTD/ZLIB이며 ASYNCPP/MVFST/MSQUIC은 OFF다. SDK prefix는 `/tmp/raftpp-sdk-build/prefix`, `/tmp/raftpp-database-sdk/prefix/{sqlite,rocksdb}`다.
+
+공통 실행 명령은 `cmake --build <build> --target raftpp_nodejs raftpp_bindings_runtime_tests --parallel 4`, `ctest --test-dir <build> -C Release -R '^raftpp.bindings_(nodejs|csharp|runtime)$' --output-on-failure`다. 관련 회귀는 아래 명시된 이름만 선택 실행했다.
+
+| 검사 | 실행/생략/미검증 | 결과 또는 참조할 이전 기록 | 변경 영향 또는 생략 이유 |
+| --- | --- | --- | --- |
+| UV+SDK6 정적/공유 Release | 실행 | `build/bindings-modules{,-shared}`: `*-final-static-tests.log`/`*-final-shared-tests.log` 각 16개 통과(binding 4/core·UV 12). 최종 FSM 변경 후 `*-finished-bindings-modules{,-shared}-tests.log`에서 nodejs/csharp/runtime 각 3개 통과 | JS 각 16사례 통과. 3노드·멤버십·분할 후 snapshot 추격·재시작·조회/설정·관찰/FSM 종료·NaN 거부·2500자 주소 포함 |
+| UV 없는 DB+SDK6 Release | 실행 | `build/bindings-db-core`, `*-finished-bindings-db-core-tests.log`: binding 3개 통과. JS 12통과/4생략 | UV OFF·정적 core/SDK·공유 bindings. SQLite/RocksDB×none/LZ4/zstd/zlib 재시작, Asio/poll·사용자 transport |
+| SDK 없는 코어 전용 Release | 실행 | `build/bindings-core`, `*-finished-bindings-core-tests.log`: binding 3개 통과. JS 3통과/13생략 | UV/SDK OFF·PkgConfig 비활성. test-memory 플러그인의 실제 노드·raw·FSM 재진입. 생략을 통과에 합산하지 않음 |
+| core/UV 로컬 snapshot 회귀 | 실행 후 최종 binding 변경에는 생략 — 기존 결과 재사용 | 위 정적/공유 16개 중 `composed_io_node`, `file_snapshot_local/truncate/order/failure/close/allocation`, `node_snapshot/snapshot_allocation/restore/io_close/fsm_close` 12개 | snapshot_put_local·writer/prune 변경 후 실행. 이후 binding 주소/인자/재진입 변경은 이 구현·테스트·입력을 바꾸지 않음 |
+| 네이티브 ASan/UBSan | 실행 | `build/bindings-asan`, `*-asan-final-tests.log`: 9개 통과/runtime 1개 timeout. Poll 수정 후 runtime 통과; 최종 `*-finished-bindings-asan-tests.log` runtime 1개 통과 | Release O1/NDEBUG·정적 core/UV·공유 bindings·Node/SDK OFF. `ASAN_OPTIONS=detect_leaks=0 UBSAN_OPTIONS=halt_on_error=1 ctest --test-dir build/bindings-asan -C Release -R '^raftpp.bindings_runtime$' --output-on-failure`. 앞선 변경 없는 9개 재사용. LSan·SDK/언어 VM 계측 제외 |
+| 이동 설치·CMake 소비자 | 실행 후 변경 없는 링크 규칙은 생략 — 기존 결과 재사용 | `/tmp/check-bindings-v2-install.py`, `*-install.log/json`: 네 이동 prefix에서 CMake 8개·Node 플러그인 4개·C# 4개와 문서의 C++ 플러그인 빌드/로딩 통과 | bindings 단독/통합 Release find_package·빌드·실행. 이후 내부 주소/재진입 변경은 헤더/링크/설치 규칙을 바꾸지 않아 CMake 8개·문서 플러그인 빌드는 재사용 |
+| 최종 설치 런타임 | 실행 | `*-installed-final-runtime.log`: 최종 라이브러리를 같은 이동 prefix에 설치한 뒤 Node 플러그인/NaN/FSM 3사례와 C# 실행을 구성별 확인 | 네 구성의 addon/PInvoke가 설치 라이브러리를 사용. CMake 링크 검사와 별도 기록 |
+| 옵션·비활성 헤더 정리 | 실행 | `/tmp/check-bindings-v2-options.py`, `*-options.log`: 세 configure 조건 통과 | bindings ON/Node OFF/UV OFF/PkgConfig 비활성 허용, 같은 디렉터리에서 bindings OFF 시 공개/export 헤더 제거, Node ON/bindings OFF 거부 |
+| 이름·타입·포맷·패키지 | 실행 | `*-api-map.json` 39개 이름 대응. `*-static-checks.log`: TS strict 양수/음수 소비자·JS 구문·변경 C++ 22파일 포맷·diff/공백 통과. `*-node-package.json` dry-run·`*-dotnet-package.log` 로컬 Release nupkg 생성 | `/tmp/audit-bindings-v2.py`, tsc ES2020/commonjs+@types/node, node --check, clang-format --dry-run --Werror, git diff --check. NuGet README 안내 보존. 원격 발행 없음 |
+| 문서 대응·링크 | 실행 | `*-doc-links.log`: 문서 36쌍/상대 링크 814개. `*-doc-parity.log`: bindings 코드 5블록 일치 | API와 진행 기록을 분리하고 두 언어를 함께 갱신 |
+| 최초 실패·수정 | 실행 기록 보존 | `*-local-snapshot-tests.log`: writer만 수정한 뒤 JS/C# 재시작 corrupt=12. segment 보존까지 수정한 `*-local-snapshot-tests2.log` 통과. `*-asan-final-tests.log`: Start 관찰 중 중첩 Poll로 runtime timeout | 로컬 barrier/prune을 함께 수정. Poll이 observing/FSM 중 재귀 구동을 거부하도록 수정하고 영향받는 검사만 재실행. 이전 v1 실패는 아래에 보존 |
+| 전체 suite·상류/QUIC·추가 matrix | 생략 — 기존 결과 재사용 / 미검증 | 변경 없는 SDK/알고리즘은 이전 「RocksDB/SQLite 저장소 모듈」·「사용자 선택형 I/O 조립」·어댑터 단위 결과 재사용. 전체/상류 suite·실제 QUIC 연결·추가 환경은 이번 미검증 | 관련 회귀/바인딩/옵션만 실행. UV 내장 LZ4 ON·fixture ON·다중 구성·다른 OS/아키텍처·순수 .NET 8·LSan의 새 검증을 주장하지 않음 |
+
+현재 범위와 제한: 두 언어에서 공개 노드 기능과 사용자 I/O 조립을 실행할 수 있다. QUIC/TLS 연결·인증·실행 영역 간 dispatch는 사용자 connector/플러그인의 책임이며 features 표시는 자동 연결 구현 증명이 아니다. DB 작업은 블로킹/완료 인라인일 수 있고 snapshotAsync는 동기 2단계 훅이다. 정상 Close 완료를 구동해야 하며 finalizer 자원 고갈/플러그인 drain 실패에는 살아 있는 자원을 보존한다. 자동 native 바이너리 배포·원격 패키지 발행은 하지 않았다. 과거 전체 감사의 kernel/raw 장치·파일시스템·참조 구현 제한은 유지한다.
+
+### 초기 Node.js·C# 바인딩 v1 — 과거 기록 (2026-11-05)
+
+`modules/bindings/{include/raftpp/bindings,privates,src,CMakeLists.txt}`에 공유 네이티브 브리지와 Node-API 애드온을 구현했다. C++20/표준 소유권과 기존 node·state_machine·uv_io·tcp_transport를 사용한다. 독립적인 C Raft 구현이나 과거 비교 타깃을 되살리지 않았다. 언어별 소스·패키지·타입 선언·검사는 `bindings/nodejs`와 `bindings/csharp`에 둔다. Node.js는 camelCase/PascalCase 타입, C#은 .NET PascalCase/camelCase 매개변수 규칙을 적용하고 지속 원칙을 AGENTS 두 언어본에 기록했다.
+
+구현 범위는 bootstrap/recover/start, apply/barrier/add/assign/remove/transfer, 주요 상태·오류 조회, 동기 FSM apply/snapshot/restore, 완료 큐, 비동기 close, finalizer용 배타적 release다. 요청·명령·FSM 결과를 네이티브가 소유하고 언어 경계에서 바이트를 복사한다. JS는 Node-API 8의 bigint·Buffer와 자동 interval poll, C#은 net8.0 P/Invoke·정적 delegate·GCHandle·SafeHandle과 사용자 Poll을 사용한다. 제출 실패에는 완료를 만들지 않고 정상 종료에는 완료 후 close를 알린다. FSM 예외·콜백 예외·중첩 호출과 생성 스레드 제한을 처리한다. C# Dispose는 Closed 이후에 사용한다. 코루틴·Promise/Task 대체 API는 추가하지 않았다.
+
+`RAFTPP_MODULE_BINDINGS`와 `RAFTPP_BINDINGS_NODEJS`는 기본 OFF다. bindings는 core/UV가 필요하며 core/UV가 정적이어도 자체는 공유 라이브러리다. Node 옵션 OFF에는 Node 헤더/런타임이 필요 없다. 생성 config/엄브렐라 헤더, 활성 헤더 미러·설치/export·컴포넌트 검색을 연결했다. binding 컴포넌트 검색은 UV의 전이 의존성을 포함한다. 기존 알고리즘·코어/UV 구현·디스크/RPC 형식을 변경하지 않았다. 바인딩 v1은 사용자 명령/스냅샷에 8바이트 little-endian 길이와 8배수 0 패딩을 적용해 임의/빈 바이트를 처리한다. 기존 raw 데이터와 혼용하지 않는다. `snapshotTrailing=0`의 로컬 비동기 snapshot/연속 append 충돌을 실행으로 확인했으므로 바인딩은 양수만 허용한다. 내부 snapshot 설치 경로는 그대로다.
+
+참조 범위는 node의 제출·FSM·snapshot·종료, UV 생성/저장/로그 정렬·barrier·close와 TCP, 표준 포인터/버퍼, 생성/설치/옵션·소비자 규칙, Node-API 및 .NET 공식 인터롭 문서, 관련 테스트다. 실제 변경은 새 bindings 모듈·두 언어 패키지/검사·tests/bindings.cpp, 루트 CMake·생성/패키지 규칙·gitignore, AGENTS/README/REWRITTEN과 한·영 bindings API·모듈 목록·CMake 설명서다. deps·외부 SDK·기존 core/UV 제품 소스는 수정하지 않았다.
+
+| 검사 | 실행/생략/미검증 | 결과 또는 참조할 이전 기록 | 변경 영향 또는 생략 이유 |
+| --- | --- | --- | --- |
+| Release 정적 core/UV + 공유 bindings | 실행 | `build/bindings`: `raftpp.bindings_native/nodejs/csharp` 세 검사 통과. 마지막 정리 경로 보완 후 `/tmp/raftpp-bindings-final-static.log`에서 세 검사 모두 통과; `raftpp` 통합 빌드 타깃의 bindings 의존성도 확인 | GCC 13.3, libuv 1.48.0, Node 20.20.2, UV ON/LZ4·fixture OFF. ABI·잘못된 입력/역할·오버플로·중복 ID·바이트 복사·64비트 ID·요청/종료 순서·FSM 예외·thread/reentry·snapshot 재시작. JS 4사례에는 TCP 3노드·추가/역할/제거/이전·빈 command/result/snapshot 포함 |
+| Release 공유 core/UV + 공유 bindings | 실행 | `build/bindings-shared`: 같은 세 검사 통과. 마지막 정리 경로 보완 후 `*-final-shared.log`에서 세 검사 모두 통과 | BUILD_SHARED_LIBS=ON, 나머지 옵션 동일. C# net8.0 타깃은 SDK 10.0.403으로 컴파일, 테스트의 RollForward=Major로 런타임 10.0.14에서 실행. 순수 .NET 8 런타임 실행을 주장하지 않음 |
+| Release ASan/UBSan 네이티브 계약 | 실행 | `build/bindings-asan`, `ASAN_OPTIONS=detect_leaks=0 UBSAN_OPTIONS=halt_on_error=1 ctest --test-dir build/bindings-asan -C Release -R '^raftpp.bindings_native$' --output-on-failure`: `*-final-asan.log` 1개 통과 | C++ 경계/리플레이·해제/정리 스레드 검사. O1/NDEBUG·정적 core/UV·공유 bindings. LSan 제외; Node/.NET 런타임 sanitizer 검증은 아님 |
+| 설치 이동·독립 소비자 | 실행 | `/tmp/check-binding-install.py`, `*-install.log`/`*-install.json`: 정적/공유 각각 bindings 개별/통합 CMake 소비자 2개씩(총 4), 설치 애드온 생성/close 2개 통과. `*-installed-csharp.log`: 이동한 두 설치 prefix의 P/Invoke 실행 2개 통과 | prefix를 실제 이동한 뒤 Release find_package/link/run. 공유 모듈의 $ORIGIN과 컴포넌트 전이 의존성 확인. 네이티브 바이너리 자동 패키징/배포는 제공하지 않음. 이후 헤더/링크/설치 규칙이 바뀌지 않은 내부 해제 보완에는 이 설치 결과를 재사용 |
+| 옵션 선택·해제 | 실행 | `/tmp/check-binding-options.py`, `*-options.log`: 동일 디렉터리 bindings ON/Node OFF → bindings·UV OFF, OFF 엄브렐라 C++20 검사/헤더 제거, bindings ON/UV OFF 실패와 Node ON/bindings OFF 실패를 확인 | 네 configure 사례. 꺼진 bindings의 헤더·export와 기능 매크로를 점검. Node SDK 없는 브리지 구성을 별도 ASan 빌드로도 컴파일 |
+| 언어 패키지·문서 | 실행 | `npm pack --dry-run --json ./bindings/nodejs`의 `*-node-package.json`: JS/타입/메타데이터 3파일. `dotnet pack ... --configuration Release --output /tmp/raftpp-bindings-packages`의 `*-dotnet-package.log`: 로컬 nupkg 생성. `*-document-links.log`와 `*-doc-parity.log`: 문서 36쌍/상대 링크 804개와 bindings 코드 3블록 대응, `git diff --check` | 프로젝트 문서 36쌍. NuGet의 package README 안내 메시지는 보존. 패키지는 관리 코드용이며 공개 레지스트리에 발행하지 않음. TypeScript 컴파일러·타입 선언 소비자 실행은 미검증 |
+| 최초 실패·수정 | 실행 기록 보존 | `*-node-first.log`: 패딩 없는 4바이트 명령/없는 디렉터리; `*-node-second.log`/`*-csharp-first.log`/`*-node-trace.log`: trailing=0와 연속 append; `*-ctest-expanded.log`: 이미 spare인 역할의 중복 assign; `*-build6.log`/`*-shared-build.log`/`*-asan-build.log`: 추가 status 필드의 헤더 갱신 누락; `*-asan-test.log`: 재시작 테스트 context가 해제된 이전 핸들을 관찰 | 명령/스냅샷 envelope·양수 trailing 검사·테스트 디렉터리/역할 입력·헤더 선언을 정정. ASan이 드러낸 테스트의 ctx.node를 재시작 핸들로 갱신한 뒤 관련 native만 재실행. 최초 설치 공유 bindings 단독 소비자는 UV 의존성 누락으로 실패하여 package component 해석을 수정(실패 prefix `/tmp/raftpp-bindings-consumer-x4plwtyk`) |
+| 기존 core/UV·선택 SDK 전체 suite·옵션 matrix | 생략 — 기존 결과 재사용 | 이전 「RocksDB/SQLite 저장소 모듈」·「사용자 선택형 I/O 조립」·모듈 구현 단위의 해당 결과 | 기존 구현·테스트·SDK와 컴파일러/의존성은 그대로다. 새 옵션/설치 변경에 영향받는 binding 경로만 실행했으며 이전 검사를 새 통과 수로 합산하지 않음 |
+
+제한: 현재 바인딩은 UV 영속 파일·IPv4 TCP만 구성하며 사용자 `make_io`/SDK 조합과 모든 C++ 튜닝/진단 API를 노출하지 않는다. C#은 같은 생성 스레드에서 Poll로 진행하며 정상 Dispose 전에 Close 완료가 필요하다. 무시한 핸들의 finalizer는 완료 콜백 전달을 보장하지 않고, 정리 스레드 생성 실패 시 살아 있는 자원을 보존한다. LZ4 ON/fixture ON/다른 SDK 조합·다중 구성 생성기·다른 OS/아키텍처·순수 .NET 8 실행·TypeScript 소비자·LSan은 이번 검증에 포함하지 않는다. 과거 이식 완료 감사와 실제 kernel/raw 장치 등의 기존 제한은 변경하지 않는다.
 
 ### README 진입 안내 (2026-11-04)
 

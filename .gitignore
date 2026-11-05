@@ -11,3 +11,8 @@
 /.codex/
 /.aws/
 /compile_commands.json
+
+# Managed binding build products.
+/bindings/**/node_modules/
+/bindings/**/bin/
+/bindings/**/obj/

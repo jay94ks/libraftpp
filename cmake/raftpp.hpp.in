@@ -43,4 +43,8 @@
 #include <raftpp/sqlite/sqlite.hpp>
 #endif
 
+#if RAFTPP_MODULE_BINDINGS
+#include <raftpp/bindings/bindings.hpp>
+#endif
+
 #endif // RAFTPP_HPP

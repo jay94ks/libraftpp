@@ -51,6 +51,7 @@ raftpp::shared<raftpp::io> assemble(
 | `truncate(log_index)` | 그 인덱스부터 suffix를 제거하며 이후 append와 저장 순서를 유지한다. |
 | `append(log_index, shared<const entry_batch>, completion)` | 수락한 배치를 완료까지 유지하고 영속화 결과로 한 번 완료한다. |
 | `snapshot_put(unsigned trailing, shared<const snapshot>, completion)` | 선행 로그와의 순서 및 trailing 보존 정책을 지켜 스냅샷을 게시한다. |
+| `snapshot_put_local(unsigned trailing, shared<const snapshot>, completion)` | 로컬 생성 스냅샷. 기본은 snapshot_put으로 전달한다. UV는 trailing=0에서도 더 새로운 로그 suffix를 보존하며 원격 설치와 구분한다. |
 | `snapshot_get(snapshot_callback)` | 스냅샷이 없으면 성공과 `nullopt`, 있으면 소유한 값을 전달한다. |
 | `close(close_callback) noexcept` | 새 요청을 중단하고 수락한 작업/정리를 완료한 뒤 종료를 알린다. 초기화 전에도 호출할 수 있어야 한다. |
 | `capacity() const noexcept` | KiB 단위 용량. 기본값 0이며 `io::capacity()`로 전달한다. |

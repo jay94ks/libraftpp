@@ -2,7 +2,7 @@
 
 [한국어](../../ko/modules/index.md) · [I/O composition](../composition.md)
 
-All types use namespace `raftpp`. Core is mandatory; optional modules depend on it. Linking a module target propagates C++20, public headers, and required link conditions.
+C++ module types use namespace `raftpp`; bindings interop symbols use a global `extern "C"` boundary. Core is mandatory; optional modules depend on it. Linking a module target propagates C++20, public headers, and required link conditions.
 
 | Module | CMake target | Activation | Public entry header | Role |
 | --- | --- | --- | --- | --- |
@@ -17,6 +17,8 @@ All types use namespace `raftpp`. Core is mandatory; optional modules depend on 
 | [zlib](zlib.md) | `raftpp::zlib` | `RAFTPP_MODULE_ZLIB` | `<raftpp/zlib/zlib.hpp>` | zlib-wrapped DEFLATE codec |
 | [RocksDB](rocksdb.md) | `raftpp::rocksdb` | `RAFTPP_MODULE_ROCKSDB` | `<raftpp/rocksdb/rocksdb.hpp>` | `rocksdb_storage : storage` |
 | [SQLite](sqlite.md) | `raftpp::sqlite` | `RAFTPP_MODULE_SQLITE` | `<raftpp/sqlite/sqlite.hpp>` | `sqlite_storage : storage` |
+
+| [bindings](bindings.md) | `raftpp::bindings` | `RAFTPP_MODULE_BINDINGS` | `<raftpp/bindings/bindings.hpp>` | Native Node.js/C# runtime with module composition/plugins |
 
 ## Selection and Installed Consumption
 

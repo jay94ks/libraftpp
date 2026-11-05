@@ -40,6 +40,7 @@ cmake --build build/core --config Release --parallel
 | [zlib](docs/en/modules/zlib.md) | `RAFTPP_MODULE_ZLIB` | zlib-wrapped DEFLATE compression |
 | [rocksdb](docs/en/modules/rocksdb.md) | `RAFTPP_MODULE_ROCKSDB` | RocksDB durable storage |
 | [sqlite](docs/en/modules/sqlite.md) | `RAFTPP_MODULE_SQLITE` | SQLite durable storage |
+| [bindings](docs/en/modules/bindings.md) | `RAFTPP_MODULE_BINDINGS` | Shared Node.js/C# bridge and optional Node-API addon |
 
 Each module provides a `raftpp::<module>` target and public headers. `raftpp::raftpp` and `<raftpp.hpp>` collect all active modules. To consume a subset, use a selection such as `find_package(raftpp CONFIG REQUIRED COMPONENTS sqlite)` and that module's target/header.
 
@@ -134,6 +135,10 @@ ctest --test-dir build/core -C Release --output-on-failure
 ```
 
 Follow [work instructions](AGENTS.en.md) for selecting development checks and reusing unchanged validation results.
+
+## Language Bindings
+
+[Node.js and C# APIs](docs/en/modules/bindings.md) are available. Native implementations live in `modules/bindings`; language packages are in `bindings/nodejs` and `bindings/csharp`. Enable `RAFTPP_MODULE_BINDINGS=ON` for the shared runtime composing selected modules and `RAFTPP_BINDINGS_NODEJS=ON` for the Node-API addon. Node.js uses callbacks and `camelCase`; C# uses callbacks and `PascalCase`. Node settings, replication queries, FSM hooks, tracing, and storage/timer/transport/codec selection are available; C# `RaftHost` owns execution-thread/polling progress.
 
 ## Documentation and Source Layout
 

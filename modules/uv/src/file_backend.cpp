@@ -30,6 +30,7 @@ namespace raftpp::detail {
         error_info diagnostic;
         uint64_t timestamp = 0;
         unsigned trailing = 0;
+        bool local = false;
         bool working = false, waiting = false, barrier_active = false;
         void operator()(error_code status) noexcept;
     };
@@ -164,8 +165,9 @@ namespace raftpp::detail {
                 return;
             }
             operation.waiting = true;
-            const auto next =
-                operation.trailing == 0 ? operation.value->index + 1 : keep->writer.next_index();
+            const auto next = !operation.local && operation.trailing == 0
+                                  ? operation.value->index + 1
+                                  : keep->writer.next_index();
             const auto result =
                 keep->writer.barrier(next, operation.trailing == 0, std::ref(operation));
             // The callback may have run inline and destroyed the operation.
@@ -207,8 +209,9 @@ namespace raftpp::detail {
                     if (!operation.status)
                         operation.status = disk.prune_snapshots(&operation.diagnostic);
                     if (!operation.status)
-                        operation.status = disk.prune_segments(
-                            operation.value->index, operation.trailing, &operation.diagnostic);
+                        operation.status =
+                            disk.prune_segments(operation.value->index, operation.trailing,
+                                                &operation.diagnostic, operation.local);
                     operation.diagnostic =
                         wrap_error_info(operation.diagnostic, "snapshot.publish");
                 },
@@ -328,7 +331,7 @@ namespace raftpp::detail {
         return state_->writer.truncate(index);
     }
     error_code file_backend::snapshot_put(unsigned trailing, shared<const snapshot> value,
-                                          completion callback) noexcept {
+                                          completion callback, bool local) noexcept {
         auto keep = state_;
         return guarded([&]() -> error_code {
             if (!keep->opened)
@@ -358,6 +361,7 @@ namespace raftpp::detail {
             operation->callback = std::move(callback);
             operation->timestamp = uv_now(keep->loop);
             operation->trailing = trailing;
+            operation->local = local;
             keep->put = std::move(operation);
             if (auto status = keep->queue_prepare()) {
                 keep->put.reset();

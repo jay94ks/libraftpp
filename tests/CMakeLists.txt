@@ -195,7 +195,7 @@ if(RAFTPP_WITH_UV)
     add_executable(raftpp_uv_io_tests uv_io.cpp allocation.cpp)
     target_link_libraries(raftpp_uv_io_tests PRIVATE raftpp::raftpp)
     set_target_properties(raftpp_uv_io_tests PROPERTIES CXX_EXTENSIONS OFF)
-    foreach(suite IN ITEMS file_snapshots file_snapshot_truncate file_snapshot_order file_snapshot_failure file_snapshot_close
+    foreach(suite IN ITEMS file_snapshots file_snapshot_local file_snapshot_truncate file_snapshot_order file_snapshot_failure file_snapshot_close
             file_snapshot_allocation uv_io_lifetime uv_io_node uv_io_limits uv_io_allocation uv_io_cluster uv_io_settings
             uv_io_capacity_contracts uv_io_capacity_admission file_diagnostics)
         add_test(NAME raftpp.${suite} COMMAND raftpp_uv_io_tests ${suite})

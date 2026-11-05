@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RepositoryUrl>https://github.com/jay94ks/libraftpp</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageId>Raftpp</PackageId>
+    <Version>0.1.0</Version>
+    <Description>Callback-based .NET bindings for raftpp.</Description>
+    <PackageLicenseExpression>LGPL-3.0-only WITH LGPL-3.0-linking-exception</PackageLicenseExpression>
+  </PropertyGroup>
+</Project>

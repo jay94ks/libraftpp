@@ -40,6 +40,13 @@ namespace raftpp {
         virtual error_code send(shared<const message> message, completion callback) = 0;
         virtual error_code snapshot_put(unsigned trailing, shared<const snapshot> snapshot,
                                         completion callback) = 0;
+        // A locally created snapshot preserves any newer accepted log suffix.
+        // The default forwards to snapshot_put for backends without a distinct
+        // installation path. UV overrides this to distinguish trailing=0.
+        virtual error_code snapshot_put_local(unsigned trailing, shared<const snapshot> value,
+                                              completion callback) {
+            return snapshot_put(trailing, std::move(value), std::move(callback));
+        }
         virtual error_code snapshot_get(snapshot_callback callback) = 0;
         [[nodiscard]] virtual uint64_t time() const noexcept = 0;
         [[nodiscard]] virtual uint32_t random(uint32_t minimum, uint32_t maximum) noexcept = 0;

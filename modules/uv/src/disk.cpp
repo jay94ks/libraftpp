@@ -1251,7 +1251,7 @@ namespace raftpp::detail {
             diagnostic, "disk.truncate", state_ ? &state_->directory : nullptr);
     }
     error_code disk_storage::prune_segments(log_index last_index, size_t trailing,
-                                            error_info* diagnostic) noexcept {
+                                            error_info* diagnostic, bool local) noexcept {
         return capture_diagnostic(
             [&](error_info* diagnostic) -> error_code {
                 return guarded(
@@ -1264,7 +1264,7 @@ namespace raftpp::detail {
                         if (last_index <= trailing)
                             return {};
                         for (const auto& file : files) {
-                            if (file.is_open ||
+                            if (file.is_open || (local && file.end_index > last_index) ||
                                 (trailing != 0 && file.end_index >= last_index - trailing + 1))
                                 break;
                             if (auto error = state_->remove(file.filename, diagnostic))

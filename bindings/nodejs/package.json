@@ -1,0 +1,23 @@
+{
+  "name": "@raftpp/node",
+  "version": "0.1.0",
+  "description": "Callback-based Node.js bindings for raftpp",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "LGPL-3.0-only WITH LGPL-3.0-linking-exception",
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "files": [
+    "index.js",
+    "index.d.ts"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jay94ks/libraftpp.git",
+    "directory": "bindings/nodejs"
+  }
+}

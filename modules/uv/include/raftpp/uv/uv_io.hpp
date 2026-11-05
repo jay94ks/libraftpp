@@ -44,6 +44,8 @@ namespace raftpp {
         error_code send(shared<const message> value, completion callback) noexcept override;
         error_code snapshot_put(unsigned trailing, shared<const snapshot> value,
                                 completion callback) noexcept override;
+        error_code snapshot_put_local(unsigned trailing, shared<const snapshot> value,
+                                      completion callback) noexcept override;
         error_code snapshot_get(snapshot_callback callback) noexcept override;
         [[nodiscard]] uint64_t time() const noexcept override;
         [[nodiscard]] uint32_t random(uint32_t minimum, uint32_t maximum) noexcept override;

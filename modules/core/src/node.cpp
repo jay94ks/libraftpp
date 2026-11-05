@@ -373,8 +373,8 @@ namespace raftpp::detail {
             try {
                 status = launch(
                     [&](completion callback) {
-                        return backend->snapshot_put(options.snapshot_trailing, job->value,
-                                                     std::move(callback));
+                        return backend->snapshot_put_local(options.snapshot_trailing, job->value,
+                                                           std::move(callback));
                     },
                     [this, job](error_code completed) {
                         fsm->snapshot_finalize(job->value->buffers);

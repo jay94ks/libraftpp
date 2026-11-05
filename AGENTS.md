@@ -46,6 +46,7 @@
 
 - 기존 C 구현·C 기준 타깃·C 비교 코드를 저장소와 빌드에 다시 추가하지 않는다. 테스트는 고정된 형식/난수 벡터·독립적인 표준 컨테이너 모델·상태/수명/순서 조건을 사용하는 C++ 자체 검사로 유지한다.
 - `modules/core/include/raftpp/`: core 공개 헤더 원본. 공개 값 타입 정의에 필요한 지원 헤더도 포함한다.
+- `modules/bindings/`: Node.js·C#용 네이티브 브리지와 Node-API 애드온. `RAFTPP_MODULE_BINDINGS`로 선택하며 core는 필수이고 UV/SDK는 선택한 런타임 조립에 따른다. 언어별 API·패키지는 `bindings/nodejs`, `bindings/csharp`에 둔다.
 - `modules/<sdk>/`: core 추상 인터페이스를 구현하는 선택 어댑터 모듈. core에 의존하며 `RAFTPP_MODULE_<NAME>`으로 선택한다. `deps/`의 상류 체크아웃·SDK 준비와 구분한다.
 - `modules/uv/include/raftpp/uv/`: 내장 I/O·transport·stream·압축의 공개 헤더 원본.
 - `modules/<module>/privates/`: 비공개 구현 헤더. 공개·설치 include 트리에 복사하지 않는다.
@@ -64,6 +65,8 @@
 - 기존 코드에서 유래한 구현은 출처와 `LICENSE.md`에 대한 안내를 유지한다.
 
 ## 언어와 네이밍
+
+- `bindings/nodejs`의 공개 API는 JavaScript/TypeScript의 `camelCase` 멤버·옵션과 `PascalCase` 클래스·타입을 따른다. `bindings/csharp`은 .NET의 `PascalCase` 타입·메서드·속성·열거값과 `camelCase` 매개변수를 따른다. `modules/bindings`의 C++ 네이티브 코드는 기존 `snake_case` 규칙을 유지한다.
 
 - 라이브러리·테스트·예제·도구에 C++20을 사용하며 컴파일러 언어 확장 없이 빌드한다.
 - 타입·함수·변수·네임스페이스·열거값은 표준 라이브러리 스타일의 `snake_case`로 명명한다.
@@ -124,6 +127,8 @@
 | `RAFTPP_WITH_LZ4` | UV가 활성화되고 liblz4 1.7.1 이상이 감지되면 최초 기본값이 켜진다. UV 없이 활성화할 수 없다. |
 | `RAFTPP_WITH_FIXTURE` | 기본 ON. 비활성화 시 fixture 소스·공개 헤더·관련 테스트 의존성을 제외한다. |
 | `RAFTPP_WITH_BACKTRACE` | 기본 OFF. 활성화 시 GNU libbacktrace 헤더·라이브러리와 `__assert_fail`을 요구한다. UV·LZ4·fixture와 독립이며, `NDEBUG`가 없는 라이브러리 빌드의 assertion 실패 시 호출 스택을 출력한다. |
+| `RAFTPP_MODULE_BINDINGS` | 기본 OFF. core와 선택 UV/SDK를 사용하는 공유 런타임 바인딩을 빌드한다. UV 없는 플러그인/DB 조립도 지원한다. |
+| `RAFTPP_BINDINGS_NODEJS` | 기본 OFF. bindings 활성화 시 Node-API 애드온을 빌드하며 Node 헤더가 필요하다. |
 | `RAFTPP_BUILD_TESTS` | 기본 OFF. 활성화 시 CTest 테스트를 빌드한다. |
 | `RAFTPP_BUILD_EXAMPLES` | 기본 OFF. 활성화 시 C++ 서버·클러스터 예제를 빌드하며 UV가 필요하다. 테스트·fixture·LZ4 활성화는 요구하지 않는다. |
 | `RAFTPP_BUILD_BENCHMARKS` | 기본 OFF. C++ native benchmark 도구를 빌드하며 UV가 필요하다. 예제·테스트·fixture·LZ4 활성화는 요구하지 않는다. |

@@ -182,6 +182,39 @@ namespace {
                   "recover snapshot after coordinator close");
         }
     }
+    void local_snapshot_suffix() {
+        directory dir;
+        loop event_loop;
+        auto storage = disk(dir);
+        d::file_backend files{event_loop.value, storage, settings()};
+        check(!files.open(1), "open local snapshot files");
+        append(event_loop, files, 1);
+        bool published = false;
+        check(!files.snapshot_put(
+                  0, snapshot(2),
+                  [&](auto error) {
+                      check(!error, "publish local zero-trailing snapshot");
+                      published = true;
+                  },
+                  true),
+              "submit local snapshot");
+        // Accept a newer suffix before preparation/publication is dispatched.
+        append(event_loop, files, 9);
+        event_loop.until([&] { return published; });
+        append(event_loop, files, 17);
+        close(event_loop, files);
+        r::io_state loaded;
+        check(!storage->load(loaded) && loaded.snapshot && loaded.snapshot->index == 2 &&
+                  loaded.start_index + loaded.entries.size() == 25,
+              "local snapshot retains newer durable suffix");
+        d::file_backend installing{event_loop.value, storage, settings()};
+        check(!installing.open(25), "open installation files");
+        put(event_loop, installing, 0, 50);
+        close(event_loop, installing);
+        check(!storage->load(loaded) && loaded.snapshot && loaded.snapshot->index == 50 &&
+                  loaded.start_index == 51 && loaded.entries.empty(),
+              "remote installation discards old suffix");
+    }
     // Combined barrier contract from cowsql/raft test_uv_truncate_snapshot.c;
     // see LICENSE.md. Both backends receive the same queued operations.
     void snapshot_truncate() {
@@ -1292,6 +1325,8 @@ int main(int argc, char** argv) {
         r::string_view suite{argv[1]};
         if (suite == "file_snapshots")
             snapshots();
+        else if (suite == "file_snapshot_local")
+            local_snapshot_suffix();
         else if (suite == "file_snapshot_truncate")
             snapshot_truncate();
         else if (suite == "file_snapshot_order")

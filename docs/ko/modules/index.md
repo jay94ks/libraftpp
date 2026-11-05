@@ -2,7 +2,7 @@
 
 [English](../../en/modules/index.md) · [I/O 조립](../composition.md)
 
-모든 타입은 `raftpp` 네임스페이스에 있다. core는 필수이며 선택 모듈은 core에 의존한다. 모듈 타깃을 연결하면 C++20, 공개 헤더와 필요한 링크 조건을 전달받는다.
+C++ 모듈 타입은 `raftpp` 네임스페이스에 있으며 bindings의 인터롭 심볼은 전역 `extern "C"` 경계다. core는 필수이며 선택 모듈은 core에 의존한다. 모듈 타깃을 연결하면 C++20, 공개 헤더와 필요한 링크 조건을 전달받는다.
 
 | 모듈 | CMake 타깃 | 활성화 | 공개 진입 헤더 | 역할 |
 | --- | --- | --- | --- | --- |
@@ -17,6 +17,8 @@
 | [zlib](zlib.md) | `raftpp::zlib` | `RAFTPP_MODULE_ZLIB` | `<raftpp/zlib/zlib.hpp>` | zlib 형식의 DEFLATE 코덱 |
 | [RocksDB](rocksdb.md) | `raftpp::rocksdb` | `RAFTPP_MODULE_ROCKSDB` | `<raftpp/rocksdb/rocksdb.hpp>` | `rocksdb_storage : storage` |
 | [SQLite](sqlite.md) | `raftpp::sqlite` | `RAFTPP_MODULE_SQLITE` | `<raftpp/sqlite/sqlite.hpp>` | `sqlite_storage : storage` |
+
+| [bindings](bindings.md) | `raftpp::bindings` | `RAFTPP_MODULE_BINDINGS` | `<raftpp/bindings/bindings.hpp>` | Node.js·C#용 선택 모듈 조립·플러그인 네이티브 런타임 |
 
 ## 선택과 설치 소비
 

@@ -454,6 +454,17 @@ namespace raftpp {
                                : make_error_code(errc::invalid);
         });
     }
+    error_code uv_io::snapshot_put_local(unsigned trailing, shared<const snapshot> value,
+                                         completion callback) noexcept {
+        auto keep = state_;
+        return detail::guarded([&]() -> error_code {
+            if (auto error = keep->available())
+                return error;
+            return keep->files ? keep->files->snapshot_put(trailing, std::move(value),
+                                                           keep->protect(std::move(callback)), true)
+                               : make_error_code(errc::invalid);
+        });
+    }
     error_code uv_io::snapshot_get(snapshot_callback callback) noexcept {
         auto keep = state_;
         return detail::guarded([&]() -> error_code {
